@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { traduzErro } from '../lib/erros'
 import { Campo } from '../components/Campo'
 import { Botao } from '../components/Botao'
+import { senhaValida } from '../lib/senha'
 
 export function Cadastro() {
   const { cadastrar } = useAuth()
@@ -22,7 +23,7 @@ export function Cadastro() {
     setErro(null)
     if (!nome.trim()) return setErro('Informe seu nome.')
     if (!email.trim()) return setErro('Informe seu email.')
-    if (senha.length < 6) return setErro('A senha precisa ter pelo menos 6 caracteres.')
+    if (!senhaValida(senha)) return setErro('A senha precisa ter pelo menos 8 caracteres, com letras e números.')
     if (senha !== confirmacao) return setErro('As senhas não conferem.')
 
     setOcupado(true)
@@ -87,7 +88,7 @@ export function Cadastro() {
           rotulo="Senha"
           type="password"
           autoComplete="new-password"
-          placeholder="mínimo 6 caracteres"
+          placeholder="mínimo 8 caracteres, letras e números"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
         />
