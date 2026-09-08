@@ -39,6 +39,10 @@ src/
   index.css              # Tailwind v4, modo escuro padrão, safe-area
   lib/supabase.ts        # cliente único do Supabase (só via variáveis de ambiente)
   lib/erros.ts           # tradução de erros do Auth para pt-BR
+  lib/senha.ts           # política de senha espelhada do Supabase
+  lib/datas.ts           # DataLocal ('yyyy-MM-dd'), hojeLocal(), aritmética sem Date, formatação pt-BR
+  lib/moeda.ts           # centavos <-> 'R$ 1.234,56'
+  dominio/parcelas.ts    # calcularParcelas(): motor de competência do cartão (função pura)
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
   components/            # Campo, Botao, Carregando, RotaProtegida/RotaPublica
   pages/                 # Entrar, Cadastro, Inicio (placeholder), EmBreve
@@ -61,7 +65,7 @@ supabase/
 
 - [x] Fase 1 — Setup Vite/React/TS/Tailwind/PWA, `.env.example`, login por email/senha
 - [x] Fase 2 — Migrations SQL + RLS + triggers + seed, aplicadas e revisadas no projeto (005_hardening)
-- [ ] Fase 3 — `calcularParcelas()` + helpers de timezone com testes
+- [x] Fase 3 — `calcularParcelas()` + helpers de timezone, 38 testes Vitest (passam em qualquer TZ)
 - [ ] Fase 4 — Onboarding + convite + cartões
 - [ ] Fase 5 — Telas Lançar e Início
 - [ ] Fase 6 — Recorrências, orçamentos, Edge Function mensal
@@ -71,7 +75,9 @@ supabase/
 ## Convenções
 
 - Dinheiro é `bigint` em **centavos**. Nunca float ou numeric fracionário.
-- Datas de negócio são `date` puro, nunca `timestamptz`.
+- Datas de negócio são `date` puro, nunca `timestamptz`. No front circulam como
+  string `'yyyy-MM-dd'` (`DataLocal`); a conversão de instante para data acontece só
+  em `paraDataLocal()` / `hojeLocal()`, com fuso `America/Sao_Paulo` explícito.
 - `competencia` é sempre o dia 1 do mês de referência.
 - Toda autorização vive no RLS. O front nunca depende de filtro manual para segurança.
 - A regra de competência do cartão (fechamento, vencimento, parcelas) vive só no front, em `calcularParcelas()`. O SQL apenas persiste as parcelas já calculadas.
