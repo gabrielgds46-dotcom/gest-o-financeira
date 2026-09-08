@@ -43,9 +43,13 @@ src/
   lib/datas.ts           # DataLocal ('yyyy-MM-dd'), hojeLocal(), aritmética sem Date, formatação pt-BR
   lib/moeda.ts           # centavos <-> 'R$ 1.234,56'
   dominio/parcelas.ts    # calcularParcelas(): motor de competência do cartão (função pura)
+  tipos/supabase.ts      # tipos gerados do banco (regenerar após cada migration)
+  dados/                 # acesso ao Supabase: perfil/casa/membros/RPCs, cartões
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
-  components/            # Campo, Botao, Carregando, RotaProtegida/RotaPublica
-  pages/                 # Entrar, Cadastro, Inicio (placeholder), EmBreve
+  contexts/PerfilContext # profile, household, membros, parceiro, recarregar()
+  components/            # Campo, CampoMoeda, CampoDia, Alternador, Folha, BarraAbas,
+                         # FormCartao, ListaCartoes, Icone, Tela, RotaProtegida/RotaComCasa/RotaPublica
+  pages/                 # Entrar, Cadastro, Comecar (onboarding), Perfil, Inicio (placeholder), EmBreve
 public/                  # ícones do PWA
 vite.config.ts           # React, Tailwind, PWA (manifest com shortcut para /lancar)
 docs/
@@ -57,6 +61,7 @@ supabase/
     003_seed.sql     # categorias fixas
     004_rpc.sql      # funções chamadas pelo front via supabase.rpc()
     005_hardening.sql # correções pós-revisão: search_path, grants, políticas, índices
+    006_rateio.sql   # RPC definir_rateio (soma 100 numa única transação)
   tests/
     01_rls_test.sql  # testes de RLS e invariantes (roda via psql como superuser)
 ```
@@ -66,7 +71,7 @@ supabase/
 - [x] Fase 1 — Setup Vite/React/TS/Tailwind/PWA, `.env.example`, login por email/senha
 - [x] Fase 2 — Migrations SQL + RLS + triggers + seed, aplicadas e revisadas no projeto (005_hardening)
 - [x] Fase 3 — `calcularParcelas()` + helpers de timezone, 38 testes Vitest (passam em qualquer TZ)
-- [ ] Fase 4 — Onboarding + convite + cartões
+- [x] Fase 4 — Onboarding (criar casa / entrar por código), dados pessoais, cartões, convite, rateio, Perfil, barra de abas
 - [ ] Fase 5 — Telas Lançar e Início
 - [ ] Fase 6 — Recorrências, orçamentos, Edge Function mensal
 - [ ] Fase 7 — Análise, KPIs, CSV
