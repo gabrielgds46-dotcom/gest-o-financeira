@@ -52,6 +52,7 @@ supabase/
     002_rls.sql      # Row Level Security, views de exposição controlada, grants
     003_seed.sql     # categorias fixas
     004_rpc.sql      # funções chamadas pelo front via supabase.rpc()
+    005_hardening.sql # correções pós-revisão: search_path, grants, políticas, índices
   tests/
     01_rls_test.sql  # testes de RLS e invariantes (roda via psql como superuser)
 ```
@@ -59,7 +60,7 @@ supabase/
 ## Fases
 
 - [x] Fase 1 — Setup Vite/React/TS/Tailwind/PWA, `.env.example`, login por email/senha
-- [x] Fase 2 — Migrations SQL + RLS + triggers + seed (entregues para revisão)
+- [x] Fase 2 — Migrations SQL + RLS + triggers + seed, aplicadas e revisadas no projeto (005_hardening)
 - [ ] Fase 3 — `calcularParcelas()` + helpers de timezone com testes
 - [ ] Fase 4 — Onboarding + convite + cartões
 - [ ] Fase 5 — Telas Lançar e Início
@@ -88,6 +89,18 @@ Ou direto no banco, na ordem numérica:
 ```bash
 for f in supabase/migrations/*.sql; do psql "$DATABASE_URL" -f "$f"; done
 ```
+
+## Decisões registradas no linter do Supabase
+
+O linter de segurança ainda aponta dois itens que são **intencionais**:
+
+- `v_cartoes_household` e `v_renda_household` como SECURITY DEFINER: é o que
+  esconde o limite do cartão e o detalhe da renda do parceiro. RLS filtra linha,
+  não coluna, então a exposição parcial precisa ser uma view do dono.
+- RPCs SECURITY DEFINER executáveis por `authenticated` (`criar_household`,
+  `entrar_household`, `gerar_codigo_convite`, `fn_sou_membro`, `fn_meu_household`):
+  todas dependem de `auth.uid()` e existem justamente para o fluxo de onboarding
+  e para evitar recursão de RLS. `anon` não executa nenhuma função.
 
 ## Rodando os testes
 
