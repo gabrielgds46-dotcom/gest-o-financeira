@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Modo escuro por padrão. A classe .dark no <html> ativa o variante dark: do Tailwind. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  min-height: 100dvh;
+  background: #09090b;
+  color: #f4f4f5;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Respeita o notch e a barra inferior do iPhone. */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top    { padding-top: env(safe-area-inset-top); }
