@@ -1,11 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { PerfilProvider } from './contexts/PerfilContext'
+import { VisaoProvider } from './contexts/VisaoContext'
 import { RotaComCasa, RotaProtegida, RotaPublica } from './components/RotaProtegida'
 import { Entrar } from './pages/Entrar'
 import { Cadastro } from './pages/Cadastro'
 import { Comecar } from './pages/Comecar'
 import { Inicio } from './pages/Inicio'
+import { Lancar } from './pages/Lancar'
 import { Perfil } from './pages/Perfil'
 import { EmBreve } from './pages/EmBreve'
 
@@ -14,6 +16,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <PerfilProvider>
+          <VisaoProvider>
           <Routes>
             <Route element={<RotaPublica />}>
               <Route path="/entrar" element={<Entrar />} />
@@ -24,7 +27,7 @@ export default function App() {
               <Route path="/comecar" element={<Comecar />} />
               <Route element={<RotaComCasa />}>
                 <Route path="/" element={<Inicio />} />
-                <Route path="/lancar" element={<EmBreve titulo="Lançar" />} />
+                <Route path="/lancar" element={<Lancar />} />
                 <Route path="/analise" element={<EmBreve titulo="Análise" />} />
                 <Route path="/perfil" element={<Perfil />} />
               </Route>
@@ -32,6 +35,7 @@ export default function App() {
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </VisaoProvider>
         </PerfilProvider>
       </AuthProvider>
     </BrowserRouter>

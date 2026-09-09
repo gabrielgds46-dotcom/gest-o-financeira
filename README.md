@@ -44,12 +44,13 @@ src/
   lib/moeda.ts           # centavos <-> 'R$ 1.234,56'
   dominio/parcelas.ts    # calcularParcelas(): motor de competência do cartão (função pura)
   tipos/supabase.ts      # tipos gerados do banco (regenerar após cada migration)
-  dados/                 # acesso ao Supabase: perfil/casa/membros/RPCs, cartões
+  dados/                 # acesso ao Supabase: perfil/casa/membros, cartões, lançamentos/KPIs
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
   contexts/PerfilContext # profile, household, membros, parceiro, recarregar()
+  contexts/VisaoContext  # mês (competência) e escopo selecionados, compartilhados entre abas
   components/            # Campo, CampoMoeda, CampoDia, Alternador, Folha, BarraAbas,
                          # FormCartao, ListaCartoes, Icone, Tela, RotaProtegida/RotaComCasa/RotaPublica
-  pages/                 # Entrar, Cadastro, Comecar (onboarding), Perfil, Inicio (placeholder), EmBreve
+  pages/                 # Entrar, Cadastro, Comecar (onboarding), Inicio, Lancar, Perfil, EmBreve (Análise)
 public/                  # ícones do PWA
 vite.config.ts           # React, Tailwind, PWA (manifest com shortcut para /lancar)
 docs/
@@ -62,6 +63,7 @@ supabase/
     004_rpc.sql      # funções chamadas pelo front via supabase.rpc()
     005_hardening.sql # correções pós-revisão: search_path, grants, políticas, índices
     006_rateio.sql   # RPC definir_rateio (soma 100 numa única transação)
+    007_kpis.sql     # resumo_mes, gasto_por_categoria, a_vencer, garantir_salario, fn_hoje_local
   tests/
     01_rls_test.sql  # testes de RLS e invariantes (roda via psql como superuser)
 ```
@@ -72,7 +74,7 @@ supabase/
 - [x] Fase 2 — Migrations SQL + RLS + triggers + seed, aplicadas e revisadas no projeto (005_hardening)
 - [x] Fase 3 — `calcularParcelas()` + helpers de timezone, 38 testes Vitest (passam em qualquer TZ)
 - [x] Fase 4 — Onboarding (criar casa / entrar por código), dados pessoais, cartões, convite, rateio, Perfil, barra de abas
-- [ ] Fase 5 — Telas Lançar e Início
+- [x] Fase 5 — Início (KPIs, a vencer, orçamento, saldo do casal, fechar mês) e Lançar (prévia de parcelas, sugestão de categoria, renda extra, repetir último)
 - [ ] Fase 6 — Recorrências, orçamentos, Edge Function mensal
 - [ ] Fase 7 — Análise, KPIs, CSV
 - [ ] Fase 8 — Realtime, refino mobile, deploy

@@ -689,6 +689,27 @@ export type Database = {
       }
     }
     Functions: {
+      a_vencer: {
+        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_dias?: number }
+        Returns: {
+          parcela_id: string
+          lancamento_id: string
+          descricao: string
+          categoria_slug: string
+          categoria_nome: string
+          categoria_cor: string
+          categoria_icone: string
+          metodo: Database["public"]["Enums"]["metodo_t"]
+          cartao_apelido: string | null
+          numero: number
+          parcelas_total: number
+          valor: number
+          vencimento: string
+          competencia: string
+          dias_restantes: number
+          pago_por: string
+        }[]
+      }
       cancelar_lancamento: {
         Args: { p_lancamento_id: string }
         Returns: number
@@ -713,6 +734,7 @@ export type Database = {
       }
       definir_rateio: { Args: { p_meu_percentual: number }; Returns: undefined }
       entrar_household: { Args: { p_codigo: string }; Returns: string }
+      fn_hoje_local: { Args: never; Returns: string }
       fn_mes_esta_fechado: {
         Args: {
           p_comp: string
@@ -724,6 +746,21 @@ export type Database = {
       }
       fn_meu_household: { Args: never; Returns: string }
       fn_sou_membro: { Args: { p_household: string }; Returns: boolean }
+      garantir_salario: { Args: { p_competencia: string }; Returns: undefined }
+      gasto_por_categoria: {
+        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Returns: {
+          categoria_id: string
+          slug: string
+          nome: string
+          icone: string
+          cor: string
+          grupo: Database["public"]["Enums"]["grupo_categoria_t"]
+          ordem: number
+          valor: number
+          teto: number | null
+        }[]
+      }
       gerar_codigo_convite: {
         Args: { p_household_id: string }
         Returns: string
@@ -753,6 +790,19 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      resumo_mes: {
+        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Returns: {
+          renda: number
+          gasto: number
+          reserva: number
+          resgate: number
+          credito: number
+          sobra: number
+          taxa_poupanca: number
+          comprometimento: number
+        }[]
       }
       saldo_casal: {
         Args: { p_household_id: string }
