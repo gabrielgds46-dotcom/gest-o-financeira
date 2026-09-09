@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { calcularParcelas, descreverParcelamento, dividirCentavos, type Parcela } from './parcelas'
+import { calcularParcelas, dividirCentavos, type Parcela } from './parcelas'
+import { descreverParcelamento } from './previa'
 
 const soma = (ps: Parcela[]) => ps.reduce((s, p) => s + p.valorCentavos, 0)
 

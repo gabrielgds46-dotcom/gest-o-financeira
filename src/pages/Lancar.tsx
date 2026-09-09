@@ -7,7 +7,8 @@ import {
   buscarUltimoLancamento, criarLancamento, criarReceitaExtra, gastoPorCategoria, listarCartoesDaCasa,
   listarCategorias, sugerirCategoria, type CartaoDaCasa, type Categoria, type GastoCategoria, type Metodo, type Natureza,
 } from '../dados/lancamentos'
-import { calcularParcelas, descreverParcelamento, PARCELAS_MAX, type Parcela } from '../dominio/parcelas'
+import { calcularParcelas, PARCELAS_MAX, type Parcela } from '../dominio/parcelas'
+import { descreverParcelamento } from '../dominio/previa'
 import { hojeLocal, primeiroDiaDoMes, ehDataLocal, type DataLocal } from '../lib/datas'
 import { formatarMoeda } from '../lib/moeda'
 import { traduzErro } from '../lib/erros'

@@ -761,6 +761,11 @@ export type Database = {
           teto: number | null
         }[]
       }
+      gerar_recorrencia: {
+        Args: { p_recorrencia_id: string; p_competencia: string; p_data: string; p_parcela: Json }
+        Returns: string | null
+      }
+      gerar_salarios: { Args: { p_competencia: string }; Returns: number }
       gerar_codigo_convite: {
         Args: { p_household_id: string }
         Returns: string

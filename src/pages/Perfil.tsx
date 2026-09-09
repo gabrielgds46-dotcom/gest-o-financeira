@@ -14,9 +14,11 @@ import { CampoDia } from '../components/CampoDia'
 import { Folha } from '../components/Folha'
 import { FormCartao } from '../components/FormCartao'
 import { ListaCartoes } from '../components/ListaCartoes'
+import { PainelRecorrencias } from '../components/PainelRecorrencias'
+import { PainelOrcamentos } from '../components/PainelOrcamentos'
 import { Icone } from '../components/Icone'
 
-type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | null
+type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | 'recorrencias' | 'orcamentos' | null
 
 export function Perfil() {
   const { user, sair } = useAuth()
@@ -93,6 +95,27 @@ export function Perfil() {
           <Botao variante="secundario" className="mt-3" onClick={() => setFolha('novoCartao')}>+ Adicionar cartão</Botao>
         </Cartao>
 
+        {/* ---------- Recorrências e orçamentos ---------- */}
+        <Cartao>
+          <button type="button" onClick={() => setFolha('recorrencias')} className="flex w-full items-center gap-3 py-1 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="repetir" /></span>
+            <span className="flex-1">
+              <span className="block font-semibold">Recorrências</span>
+              <span className="block text-xs text-zinc-500">Aluguel, luz, faculdade, streaming</span>
+            </span>
+            <Icone nome="seta" className="text-zinc-600" />
+          </button>
+          <div className="my-1 h-px bg-zinc-800" />
+          <button type="button" onClick={() => setFolha('orcamentos')} className="flex w-full items-center gap-3 py-1 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="analise" /></span>
+            <span className="flex-1">
+              <span className="block font-semibold">Orçamentos</span>
+              <span className="block text-xs text-zinc-500">Teto mensal por categoria</span>
+            </span>
+            <Icone nome="seta" className="text-zinc-600" />
+          </button>
+        </Cartao>
+
         <Botao variante="fantasma" onClick={() => void sair()}>
           <Icone nome="sair" className="mr-2" /> Sair da conta
         </Botao>
@@ -113,6 +136,14 @@ export function Perfil() {
 
       <Folha aberta={folha === 'convite'} titulo="Convidar meu par" onFechar={fechar}>
         {casa && <PainelConvite householdId={casa.id} codigoAtual={casa.codigo_convite} expiraEm={casa.codigo_expira_em} onGerado={recarregar} />}
+      </Folha>
+
+      <Folha aberta={folha === 'recorrencias'} titulo="Recorrências" onFechar={fechar}>
+        <PainelRecorrencias ownerId={user.id} householdId={perfil.household_id} temParceiro={!!parceiro} />
+      </Folha>
+
+      <Folha aberta={folha === 'orcamentos'} titulo="Orçamentos" onFechar={fechar}>
+        <PainelOrcamentos ownerId={user.id} householdId={perfil.household_id} temParceiro={!!parceiro} />
       </Folha>
 
       <Folha aberta={folha === 'novoCartao'} titulo="Novo cartão" onFechar={fechar}>

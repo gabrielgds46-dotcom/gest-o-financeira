@@ -14,7 +14,7 @@ import {
   montar,
   partes,
   somarMeses,
-} from './calendario'
+} from './calendario.ts'
 
 export type Metodo = 'credito' | 'a_vista'
 

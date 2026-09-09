@@ -8,6 +8,7 @@ import {
   reabrirMes, registrarAcerto, resumoMes, saldoCasal,
   type GastoCategoria, type ParcelaAVencer, type ResumoMes, type SaldoCasal,
 } from '../dados/lancamentos'
+import { gerarPendentes } from '../dados/recorrencias'
 import { formatarMoeda } from '../lib/moeda'
 import { formatarData, hojeLocal, primeiroDiaDoMes, compararDatas } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
@@ -44,9 +45,12 @@ export function Inicio() {
     if (!user || !perfil) return
     setErro(null)
     try {
-      // Fallback de geração do salário do mês (a Edge Function faz o mesmo no cron).
+      // Fallback do primeiro acesso do mês: gera salário e recorrências que o
+      // cron ainda não gerou. Mesma RPC idempotente da Edge Function, então
+      // rodar os dois nunca duplica.
       if (compararDatas(competencia, primeiroDiaDoMes(perfil.created_at.slice(0, 10))) >= 0) {
         await garantirSalario(competencia)
+        await gerarPendentes(competencia)
       }
       const [r, c, v, f, s] = await Promise.all([
         resumoMes(escopo, competencia),

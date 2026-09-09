@@ -16,7 +16,7 @@ type Estado = {
 const PerfilContext = createContext<Estado | null>(null)
 
 export function PerfilProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, carregando: autenticando } = useAuth()
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [casa, setCasa] = useState<Casa | null>(null)
   const [membros, setMembros] = useState<Membro[]>([])
@@ -24,6 +24,11 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
   const [erro, setErro] = useState<string | null>(null)
 
   const recarregar = useCallback(async () => {
+    // Enquanto a sessão não resolve, `user` é null mas ainda não sabemos se há
+    // login. Concluir o carregamento aqui faria RotaComCasa achar que não há
+    // household e mandar para o onboarding — perdendo o destino de um link
+    // direto (o atalho /lancar do PWA, por exemplo).
+    if (autenticando) return
     if (!user) {
       setPerfil(null); setCasa(null); setMembros([]); setCarregando(false)
       return
@@ -43,9 +48,9 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
     } finally {
       setCarregando(false)
     }
-  }, [user])
+  }, [user, autenticando])
 
-  useEffect(() => { setCarregando(true); void recarregar() }, [recarregar])
+  useEffect(() => { void recarregar() }, [recarregar])
 
   const parceiro = membros.find((m) => m.user_id !== user?.id)
 

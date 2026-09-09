@@ -42,7 +42,10 @@ src/
   lib/senha.ts           # política de senha espelhada do Supabase
   lib/datas.ts           # DataLocal ('yyyy-MM-dd'), hojeLocal(), aritmética sem Date, formatação pt-BR
   lib/moeda.ts           # centavos <-> 'R$ 1.234,56'
+  dominio/calendario.ts  # aritmética de datas, ZERO dependências (copiada para a Edge Function)
   dominio/parcelas.ts    # calcularParcelas(): motor de competência do cartão (função pura)
+  dominio/recorrencias.ts # planejarRecorrencia(): o que uma recorrência gera no mês
+  dominio/previa.ts      # texto "12x de R$ 99,99 — de out/2026 a set/2027"
   tipos/supabase.ts      # tipos gerados do banco (regenerar após cada migration)
   dados/                 # acesso ao Supabase: perfil/casa/membros, cartões, lançamentos/KPIs
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
@@ -64,6 +67,9 @@ supabase/
     005_hardening.sql # correções pós-revisão: search_path, grants, políticas, índices
     006_rateio.sql   # RPC definir_rateio (soma 100 numa única transação)
     007_kpis.sql     # resumo_mes, gasto_por_categoria, a_vencer, garantir_salario, fn_hoje_local
+    008_recorrencias.sql # gerar_recorrencia (idempotente), gerar_salarios
+  functions/
+    gerar-recorrencias/  # Edge Function (Deno) do cron mensal
   tests/
     01_rls_test.sql  # testes de RLS e invariantes (roda via psql como superuser)
 ```
@@ -75,7 +81,7 @@ supabase/
 - [x] Fase 3 — `calcularParcelas()` + helpers de timezone, 38 testes Vitest (passam em qualquer TZ)
 - [x] Fase 4 — Onboarding (criar casa / entrar por código), dados pessoais, cartões, convite, rateio, Perfil, barra de abas
 - [x] Fase 5 — Início (KPIs, a vencer, orçamento, saldo do casal, fechar mês) e Lançar (prévia de parcelas, sugestão de categoria, renda extra, repetir último)
-- [ ] Fase 6 — Recorrências, orçamentos, Edge Function mensal
+- [x] Fase 6 — Recorrências, orçamentos e Edge Function mensal com idempotência
 - [ ] Fase 7 — Análise, KPIs, CSV
 - [ ] Fase 8 — Realtime, refino mobile, deploy
 
@@ -102,6 +108,34 @@ Ou direto no banco, na ordem numérica:
 ```bash
 for f in supabase/migrations/*.sql; do psql "$DATABASE_URL" -f "$f"; done
 ```
+
+## Geração mensal (recorrências e salário)
+
+A regra de competência vive só no TypeScript (`planejarRecorrencia` -> `calcularParcelas`).
+O SQL apenas persiste, e o índice único `(recorrencia_id, competencia)` garante que a
+mesma recorrência nunca gera duas vezes no mesmo mês. Existem dois gatilhos, e rodar
+os dois é seguro:
+
+1. **Edge Function `gerar-recorrencias`** (cron da virada do mês).
+2. **Fallback no app**, no primeiro acesso a um mês (`gerarPendentes`).
+
+Para os módulos do domínio não divergirem entre app e função, eles são copiados para
+`supabase/functions/gerar-recorrencias/dominio/` e um teste (`sincronia.test.ts`)
+falha se as cópias saírem de sincronia. Depois de alterar qualquer um deles:
+
+```bash
+cp src/dominio/{calendario,parcelas,recorrencias}.ts supabase/functions/gerar-recorrencias/dominio/
+sed -i "s#from './calendario'#from './calendario.ts'#" supabase/functions/gerar-recorrencias/dominio/*.ts
+sed -i "s#from './parcelas'#from './parcelas.ts'#" supabase/functions/gerar-recorrencias/dominio/recorrencias.ts
+```
+
+### Agendando o cron
+
+No painel do Supabase, em **Integrations > Cron**, crie um job que chame a Edge
+Function `gerar-recorrencias`. Sugestão: `0 6 1 * *` (dia 1 de cada mês, 03h de
+Brasília). O painel cuida da autenticação, então a chave secreta não precisa ser
+copiada para lugar nenhum. Para reprocessar um mês específico, envie no corpo
+`{"competencia":"2026-10-01"}`.
 
 ## Decisões registradas no linter do Supabase
 
