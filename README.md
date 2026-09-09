@@ -46,6 +46,9 @@ src/
   dominio/parcelas.ts    # calcularParcelas(): motor de competência do cartão (função pura)
   dominio/recorrencias.ts # planejarRecorrencia(): o que uma recorrência gera no mês
   dominio/previa.ts      # texto "12x de R$ 99,99 — de out/2026 a set/2027"
+  dominio/csv.ts         # CSV pt-BR (separador ;, BOM, vírgula decimal)
+  dominio/exportacao.ts  # linhas do banco -> CSV de lançamentos
+  lib/viz.ts             # paleta dos gráficos, validada para daltonismo
   tipos/supabase.ts      # tipos gerados do banco (regenerar após cada migration)
   dados/                 # acesso ao Supabase: perfil/casa/membros, cartões, lançamentos/KPIs
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
@@ -68,6 +71,8 @@ supabase/
     006_rateio.sql   # RPC definir_rateio (soma 100 numa única transação)
     007_kpis.sql     # resumo_mes, gasto_por_categoria, a_vencer, garantir_salario, fn_hoje_local
     008_recorrencias.sql # gerar_recorrencia (idempotente), gerar_salarios
+    009_analise.sql  # analise_categorias, analise_metodo, evolucao_mensal,
+                     # comprometimento_futuro, limite_por_cartao, exportar_lancamentos
   functions/
     gerar-recorrencias/  # Edge Function (Deno) do cron mensal
   tests/
@@ -82,7 +87,7 @@ supabase/
 - [x] Fase 4 — Onboarding (criar casa / entrar por código), dados pessoais, cartões, convite, rateio, Perfil, barra de abas
 - [x] Fase 5 — Início (KPIs, a vencer, orçamento, saldo do casal, fechar mês) e Lançar (prévia de parcelas, sugestão de categoria, renda extra, repetir último)
 - [x] Fase 6 — Recorrências, orçamentos e Edge Function mensal com idempotência
-- [ ] Fase 7 — Análise, KPIs, CSV
+- [x] Fase 7 — Análise (comprometimento futuro, por categoria, método, evolução, limite por cartão) e exportação CSV
 - [ ] Fase 8 — Realtime, refino mobile, deploy
 
 ## Convenções
@@ -136,6 +141,23 @@ Function `gerar-recorrencias`. Sugestão: `0 6 1 * *` (dia 1 de cada mês, 03h d
 Brasília). O painel cuida da autenticação, então a chave secreta não precisa ser
 copiada para lugar nenhum. Para reprocessar um mês específico, envie no corpo
 `{"competencia":"2026-10-01"}`.
+
+## Decisões de visualização
+
+O guia de dataviz foi aplicado na tela Análise, e duas escolhas merecem registro:
+
+- **Barras horizontais no lugar do donut.** A especificação pedia um donut de %
+  por categoria com uma lista ao lado. O validador de paleta reprovou qualquer
+  arranjo de seis fatias: o pior par fica com ΔE 1,6 para deuteranopia, ou seja,
+  indistinguível. Como as fatias de um donut são ordenadas por valor, a
+  vizinhança muda todo mês e não há ordem que resolva. A forma recomendada para
+  partes de um todo com nomes longos é a barra horizontal, então cada categoria
+  virou uma linha com ícone, nome, valor, percentual e barra na cor dela. A
+  identidade nunca depende só da cor, e no celular lê melhor.
+- **Cores dos gráficos separadas das cores das categorias.** As categorias
+  seguem a cor da entidade, vinda do banco. As séries dos gráficos (renda vs
+  gasto, crédito vs à vista) usam `lib/viz.ts`, validado para daltonismo na
+  superfície escura em todos os pares.
 
 ## Decisões registradas no linter do Supabase
 

@@ -689,6 +689,55 @@ export type Database = {
       }
     }
     Functions: {
+      analise_categorias: {
+        Args: { p_visao: string; p_competencia: string }
+        Returns: {
+          categoria_id: string
+          slug: string
+          nome: string
+          icone: string
+          cor: string
+          grupo: Database["public"]["Enums"]["grupo_categoria_t"]
+          ordem: number
+          valor: number
+        }[]
+      }
+      analise_metodo: {
+        Args: { p_visao: string; p_competencia: string }
+        Returns: { credito: number; a_vista: number }[]
+      }
+      comprometimento_futuro: {
+        Args: { p_visao: string; p_competencia: string; p_meses?: number }
+        Returns: { competencia: string; valor: number; credito: number }[]
+      }
+      evolucao_mensal: {
+        Args: { p_visao: string; p_competencia: string; p_meses?: number }
+        Returns: { competencia: string; renda: number; gasto: number }[]
+      }
+      limite_por_cartao: {
+        Args: { p_competencia: string }
+        Returns: { cartao_id: string; apelido: string; limite: number | null; comprometido: number }[]
+      }
+      exportar_lancamentos: {
+        Args: { p_visao: string; p_de: string; p_ate: string }
+        Returns: {
+          competencia: string
+          vencimento: string
+          data_compra: string
+          descricao: string
+          categoria: string
+          grupo: Database["public"]["Enums"]["grupo_categoria_t"]
+          escopo: Database["public"]["Enums"]["escopo_t"]
+          metodo: Database["public"]["Enums"]["metodo_t"]
+          natureza: Database["public"]["Enums"]["natureza_t"]
+          cartao: string | null
+          parcela: string
+          valor: number
+          status: Database["public"]["Enums"]["status_parcela_t"]
+          pago_em: string | null
+          pago_por: string | null
+        }[]
+      }
       a_vencer: {
         Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_dias?: number }
         Returns: {

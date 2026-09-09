@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { PerfilProvider } from './contexts/PerfilContext'
@@ -9,7 +10,11 @@ import { Comecar } from './pages/Comecar'
 import { Inicio } from './pages/Inicio'
 import { Lancar } from './pages/Lancar'
 import { Perfil } from './pages/Perfil'
-import { EmBreve } from './pages/EmBreve'
+import { Carregando } from './components/Carregando'
+
+// Recharts é pesado (~700 kB). Carregar a Análise sob demanda mantém o
+// primeiro acesso leve no celular, que é o uso principal do app.
+const Analise = lazy(() => import('./pages/Analise').then((m) => ({ default: m.Analise })))
 
 export default function App() {
   return (
@@ -28,7 +33,7 @@ export default function App() {
               <Route element={<RotaComCasa />}>
                 <Route path="/" element={<Inicio />} />
                 <Route path="/lancar" element={<Lancar />} />
-                <Route path="/analise" element={<EmBreve titulo="Análise" />} />
+                <Route path="/analise" element={<Suspense fallback={<Carregando />}><Analise /></Suspense>} />
                 <Route path="/perfil" element={<Perfil />} />
               </Route>
             </Route>
