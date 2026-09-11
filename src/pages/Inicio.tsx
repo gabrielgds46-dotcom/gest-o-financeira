@@ -12,6 +12,7 @@ import { gerarPendentes } from '../dados/recorrencias'
 import { formatarMoeda } from '../lib/moeda'
 import { formatarData, hojeLocal, primeiroDiaDoMes, compararDatas } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
+import { useTempoReal } from '../lib/tempoReal'
 import { Tela, Cartao, Aviso } from '../components/Tela'
 import { SeletorMes } from '../components/SeletorMes'
 import { Alternador } from '../components/Alternador'
@@ -68,6 +69,9 @@ export function Inicio() {
   }, [user, perfil, competencia, escopo, householdId])
 
   useEffect(() => { void carregar() }, [carregar])
+
+  // Sincronia com o outro aparelho: o que o par lançar aparece aqui sozinho.
+  useTempoReal(['lancamentos', 'parcelas', 'receitas', 'acertos', 'meses_fechados', 'orcamentos'], carregar)
 
   async function pagar(p: ParcelaAVencer) {
     try { await marcarParcelaPaga(p.parcela_id, hoje); await carregar() } catch (e) { setErro(traduzErro((e as Error).message)) }

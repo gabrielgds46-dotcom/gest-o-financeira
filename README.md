@@ -49,6 +49,8 @@ src/
   dominio/csv.ts         # CSV pt-BR (separador ;, BOM, vírgula decimal)
   dominio/exportacao.ts  # linhas do banco -> CSV de lançamentos
   lib/viz.ts             # paleta dos gráficos, validada para daltonismo
+  lib/tempoReal.ts       # useTempoReal(): sincronia entre os dois aparelhos
+  lib/baixar.ts          # entrega de arquivo (folha nativa no celular, download no desktop)
   tipos/supabase.ts      # tipos gerados do banco (regenerar após cada migration)
   dados/                 # acesso ao Supabase: perfil/casa/membros, cartões, lançamentos/KPIs
   contexts/AuthContext   # sessão, entrar, cadastrar, sair
@@ -73,6 +75,7 @@ supabase/
     008_recorrencias.sql # gerar_recorrencia (idempotente), gerar_salarios
     009_analise.sql  # analise_categorias, analise_metodo, evolucao_mensal,
                      # comprometimento_futuro, limite_por_cartao, exportar_lancamentos
+    010_realtime.sql # publicação Realtime das tabelas do fluxo compartilhado
   functions/
     gerar-recorrencias/  # Edge Function (Deno) do cron mensal
   tests/
@@ -88,7 +91,7 @@ supabase/
 - [x] Fase 5 — Início (KPIs, a vencer, orçamento, saldo do casal, fechar mês) e Lançar (prévia de parcelas, sugestão de categoria, renda extra, repetir último)
 - [x] Fase 6 — Recorrências, orçamentos e Edge Function mensal com idempotência
 - [x] Fase 7 — Análise (comprometimento futuro, por categoria, método, evolução, limite por cartão) e exportação CSV
-- [ ] Fase 8 — Realtime, refino mobile, deploy
+- [x] Fase 8 — Realtime entre os aparelhos, refino mobile (aviso de nova versão, offline, toque) e deploy
 
 ## Convenções
 
@@ -134,12 +137,29 @@ sed -i "s#from './calendario'#from './calendario.ts'#" supabase/functions/gerar-
 sed -i "s#from './parcelas'#from './parcelas.ts'#" supabase/functions/gerar-recorrencias/dominio/recorrencias.ts
 ```
 
+### Sincronia entre os aparelhos
+
+As tabelas do fluxo compartilhado publicam no Realtime (`010_realtime.sql`), e o
+Realtime do Supabase respeita RLS: cada aparelho só recebe evento de linha que já
+poderia ler, então nada de pessoal do parceiro trafega. `REPLICA IDENTITY FULL` é
+necessário para que o payload de UPDATE e DELETE traga as colunas usadas nas
+políticas; sem isso o filtro não decide e o evento não chega.
+
+O `useTempoReal` não aplica o payload: ele só dispara a recarga das RPCs. Assim a
+tela nunca diverge do banco. Eventos vêm em rajada (um lançamento de 12x gera 13
+linhas), então há um agrupamento de 350ms. Voltar do segundo plano e reconectar
+também recarregam, porque a aba dormindo perde eventos.
+
 ### Agendando o cron
 
-No painel do Supabase, em **Integrations > Cron**, crie um job que chame a Edge
-Function `gerar-recorrencias`. Sugestão: `0 6 1 * *` (dia 1 de cada mês, 03h de
-Brasília). O painel cuida da autenticação, então a chave secreta não precisa ser
-copiada para lugar nenhum. Para reprocessar um mês específico, envie no corpo
+Já está agendado: job `gerar-recorrencias`, `0 6 1 * *` (dia 1 de cada mês, 03h de
+Brasília), chamando a Edge Function via `net.http_post`. Requisitos no banco:
+`pg_cron` e `pg_net` instaladas (`pg_net` no schema `extensions`).
+
+A chamada leva a chave **anon** no `Authorization`, não a secreta. A anon já é
+pública (vai no bundle do app) e a Edge Function exige apenas um JWT válido; como
+a geração é idempotente e não destrutiva, disparar fora de hora não causa dano, e
+nenhum segredo passa a morar no banco. Para reprocessar um mês, envie no corpo
 `{"competencia":"2026-10-01"}`.
 
 ## Decisões de visualização

@@ -17,6 +17,7 @@ import { baixarArquivo } from '../lib/baixar'
 import { formatarMoeda } from '../lib/moeda'
 import { montar, partes, primeiroDiaDoMes } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
+import { useTempoReal } from '../lib/tempoReal'
 import { VIZ } from '../lib/viz'
 import { Tela, Cartao, Aviso } from '../components/Tela'
 import { SeletorMes } from '../components/SeletorMes'
@@ -67,6 +68,7 @@ export function Analise() {
     }
   }, [visao, competencia])
   useEffect(() => { void carregar() }, [carregar])
+  useTempoReal(['lancamentos', 'parcelas', 'receitas', 'orcamentos'], carregar)
 
   // % por categoria: só o grupo despesa entra no denominador (reserva é guardar,
   // não gastar). Ordenado do maior para o menor.

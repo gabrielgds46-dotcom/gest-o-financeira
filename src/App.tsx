@@ -11,6 +11,7 @@ import { Inicio } from './pages/Inicio'
 import { Lancar } from './pages/Lancar'
 import { Perfil } from './pages/Perfil'
 import { Carregando } from './components/Carregando'
+import { Avisos } from './components/Avisos'
 
 // Recharts é pesado (~700 kB). Carregar a Análise sob demanda mantém o
 // primeiro acesso leve no celular, que é o uso principal do app.
@@ -19,6 +20,7 @@ const Analise = lazy(() => import('./pages/Analise').then((m) => ({ default: m.A
 export default function App() {
   return (
     <BrowserRouter>
+      <Avisos />
       <AuthProvider>
         <PerfilProvider>
           <VisaoProvider>

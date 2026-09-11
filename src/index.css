@@ -13,6 +13,22 @@ html, body, #root {
   color: #f4f4f5;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  /* Sem o "puxão" elástico do iOS: instalado como app, ele denuncia que é web. */
+  overscroll-behavior-y: none;
+}
+
+/* Elimina o atraso de 300ms do duplo-toque e o zoom acidental em botões. */
+button, a, input, select, [role='radio'], [role='button'] {
+  touch-action: manipulation;
+}
+
+/* Respeita quem pediu menos animação no sistema. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Respeita o notch e a barra inferior do iPhone. */
