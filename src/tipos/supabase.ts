@@ -761,7 +761,61 @@ export type Database = {
       }
       cancelar_lancamento: {
         Args: { p_lancamento_id: string }
-        Returns: number
+        /** ids das parcelas que ESTA chamada cancelou, para o desfazer. */
+        Returns: string[]
+      }
+      reverter_cancelamento: {
+        Args: { p_parcela_ids: string[] }
+        Returns: undefined
+      }
+      detalhe_lancamento: {
+        Args: { p_lancamento_id: string }
+        Returns: Json
+      }
+      excluir_lancamento: {
+        Args: { p_lancamento_id: string }
+        /** Retrato completo do que foi apagado, para restaurar_lancamento. */
+        Returns: Json
+      }
+      restaurar_lancamento: {
+        Args: { p_snapshot: Json }
+        Returns: string
+      }
+      editar_lancamento: {
+        Args: {
+          p_lancamento_id: string
+          p_valor_total: number
+          p_categoria_id: string
+          p_descricao: string
+          p_data_compra: string
+          p_metodo: Database["public"]["Enums"]["metodo_t"]
+          p_cartao_id: string | null
+          p_natureza: Database["public"]["Enums"]["natureza_t"]
+          p_parcelas: Json
+        }
+        Returns: undefined
+      }
+      lancamentos_do_mes: {
+        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Returns: {
+          parcela_id: string
+          lancamento_id: string
+          descricao: string
+          categoria_nome: string
+          categoria_cor: string
+          categoria_icone: string
+          metodo: Database["public"]["Enums"]["metodo_t"]
+          natureza: Database["public"]["Enums"]["natureza_t"]
+          cartao_apelido: string | null
+          numero: number
+          parcelas_total: number
+          valor: number
+          vencimento: string
+          status: Database["public"]["Enums"]["status_parcela_t"]
+          pago_em: string | null
+          pago_por: string
+          recorrencia_id: string | null
+        }[]
       }
       criar_household: { Args: { p_nome: string }; Returns: string }
       criar_lancamento: {

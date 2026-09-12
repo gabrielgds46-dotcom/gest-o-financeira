@@ -4,13 +4,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { usePerfil } from '../contexts/PerfilContext'
 import { useVisao, type Escopo } from '../contexts/VisaoContext'
 import {
-  aVencer, fecharMes, garantirSalario, gastoPorCategoria, marcarParcelaPaga, mesEstaFechado,
-  reabrirMes, registrarAcerto, resumoMes, saldoCasal,
-  type GastoCategoria, type ParcelaAVencer, type ResumoMes, type SaldoCasal,
+  aVencer, desmarcarParcelaPaga, fecharMes, garantirSalario, gastoPorCategoria, lancamentosDoMes,
+  marcarParcelaPaga, mesEstaFechado, reabrirMes, registrarAcerto, resumoMes, saldoCasal,
+  type GastoCategoria, type LancamentoDoMes, type ParcelaAVencer, type ResumoMes, type SaldoCasal,
 } from '../dados/lancamentos'
 import { gerarPendentes } from '../dados/recorrencias'
 import { formatarMoeda } from '../lib/moeda'
-import { formatarData, hojeLocal, primeiroDiaDoMes, compararDatas } from '../lib/datas'
+import { formatarData, formatarCompetenciaLonga, hojeLocal, primeiroDiaDoMes, compararDatas } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
 import { useTempoReal } from '../lib/tempoReal'
 import { Tela, Cartao, Aviso } from '../components/Tela'
@@ -22,6 +22,8 @@ import { Folha } from '../components/Folha'
 import { CampoMoeda } from '../components/CampoMoeda'
 import { Campo } from '../components/Campo'
 import { Icone, type NomeIcone } from '../components/Icone'
+import { FolhaLancamento } from '../components/FolhaLancamento'
+import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 
 const LIMITE_COMPROMETIMENTO = 0.3
 
@@ -35,9 +37,12 @@ export function Inicio() {
   const [vencer, setVencer] = useState<ParcelaAVencer[]>([])
   const [saldos, setSaldos] = useState<SaldoCasal[]>([])
   const [fechado, setFechado] = useState(false)
+  const [lista, setLista] = useState<LancamentoDoMes[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [folhaAcerto, setFolhaAcerto] = useState(false)
+  const [detalheId, setDetalheId] = useState<string | null>(null)
+  const [pedido, setPedido] = useState<PedidoDesfazer | null>(null)
 
   const hoje = hojeLocal()
   const householdId = perfil?.household_id ?? null
@@ -53,14 +58,15 @@ export function Inicio() {
         await garantirSalario(competencia)
         await gerarPendentes(competencia)
       }
-      const [r, c, v, f, s] = await Promise.all([
+      const [r, c, v, f, s, l] = await Promise.all([
         resumoMes(escopo, competencia),
         gastoPorCategoria(escopo, competencia),
         aVencer(escopo, 7),
         mesEstaFechado(escopo, competencia, user.id, householdId),
         escopo === 'compartilhado' && householdId ? saldoCasal(householdId) : Promise.resolve([]),
+        lancamentosDoMes(escopo, competencia),
       ])
-      setResumo(r); setCategorias(c); setVencer(v); setFechado(f); setSaldos(s)
+      setResumo(r); setCategorias(c); setVencer(v); setFechado(f); setSaldos(s); setLista(l)
     } catch (e) {
       setErro(traduzErro((e as Error).message))
     } finally {
@@ -73,8 +79,17 @@ export function Inicio() {
   // Sincronia com o outro aparelho: o que o par lançar aparece aqui sozinho.
   useTempoReal(['lancamentos', 'parcelas', 'receitas', 'acertos', 'meses_fechados', 'orcamentos'], carregar)
 
+  // Marcar pago é um toque só, e o toque errado é fácil. Em vez de confirmar
+  // antes, o app deixa voltar atrás depois.
   async function pagar(p: ParcelaAVencer) {
-    try { await marcarParcelaPaga(p.parcela_id, hoje); await carregar() } catch (e) { setErro(traduzErro((e as Error).message)) }
+    try {
+      await marcarParcelaPaga(p.parcela_id, hoje)
+      await carregar()
+      setPedido({
+        texto: `${p.descricao || p.categoria_nome} marcado como pago.`,
+        aoDesfazer: async () => { await desmarcarParcelaPaga(p.parcela_id); await carregar() },
+      })
+    } catch (e) { setErro(traduzErro((e as Error).message)) }
   }
 
   async function alternarFechamento() {
@@ -166,20 +181,63 @@ export function Inicio() {
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: p.categoria_cor + '26', color: p.categoria_cor }}>
                     <Icone nome={p.categoria_icone as NomeIcone} tamanho={18} />
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{p.descricao || p.categoria_nome}</span>
-                    <span className="block text-xs text-zinc-500">
-                      {formatarData(p.vencimento)}
-                      {p.parcelas_total > 1 && ` · ${p.numero}/${p.parcelas_total}`}
-                      {p.cartao_apelido && ` · ${p.cartao_apelido}`}
+                  <button type="button" onClick={() => setDetalheId(p.lancamento_id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{p.descricao || p.categoria_nome}</span>
+                      <span className="block text-xs text-zinc-500">
+                        {formatarData(p.vencimento)}
+                        {p.parcelas_total > 1 && ` · ${p.numero}/${p.parcelas_total}`}
+                        {p.cartao_apelido && ` · ${p.cartao_apelido}`}
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-right">
-                    <span className="block text-sm font-semibold tabular-nums">{formatarMoeda(p.valor)}</span>
-                    <BadgeDias dias={p.dias_restantes} />
-                  </span>
+                    <span className="text-right">
+                      <span className="block text-sm font-semibold tabular-nums">{formatarMoeda(p.valor)}</span>
+                      <BadgeDias dias={p.dias_restantes} />
+                    </span>
+                  </button>
                   <button type="button" onClick={() => void pagar(p)} aria-label="Marcar como pago" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-emerald-400 active:bg-emerald-500/20">
                     <Icone nome="check" tamanho={18} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Cartao>
+
+        {/* ---------- Lançamentos do mês ---------- */}
+        <Cartao>
+          <h2 className="text-sm font-semibold text-zinc-300">Lançamentos de {formatarCompetenciaLonga(competencia)}</h2>
+          {lista.length === 0 ? (
+            <p className="mt-2 text-sm text-zinc-500">
+              {carregando ? 'Carregando…' : 'Nenhum lançamento neste mês.'}
+            </p>
+          ) : (
+            <ul className="mt-2 divide-y divide-zinc-800">
+              {lista.map((l) => (
+                <li key={l.parcela_id}>
+                  <button
+                    type="button"
+                    onClick={() => setDetalheId(l.lancamento_id)}
+                    className="flex w-full items-center gap-3 py-2.5 text-left active:bg-zinc-800/60"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: l.categoria_cor + '26', color: l.categoria_cor }}>
+                      <Icone nome={l.categoria_icone as NomeIcone} tamanho={18} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{l.descricao || l.categoria_nome}</span>
+                      <span className="block text-xs text-zinc-500">
+                        {formatarData(l.vencimento)}
+                        {l.parcelas_total > 1 && ` · ${l.numero}/${l.parcelas_total}`}
+                        {l.cartao_apelido && ` · ${l.cartao_apelido}`}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-right">
+                      <span className={'block text-sm font-semibold tabular-nums ' + (l.natureza === 'resgate' ? 'text-emerald-400' : '')}>
+                        {l.natureza === 'resgate' ? '+' : ''}{formatarMoeda(l.valor)}
+                      </span>
+                      {l.status === 'pago' && <span className="text-[10px] text-emerald-400">pago</span>}
+                    </span>
+                    <Icone nome="seta" tamanho={16} className="shrink-0 text-zinc-600" />
                   </button>
                 </li>
               ))}
@@ -219,6 +277,15 @@ export function Inicio() {
           </Botao>
         )}
       </div>
+
+      <FolhaLancamento
+        lancamentoId={detalheId}
+        onFechar={() => setDetalheId(null)}
+        onMudou={carregar}
+        onDesfazer={setPedido}
+      />
+
+      <Desfazer pedido={pedido} onFim={() => setPedido(null)} />
 
       <Folha aberta={folhaAcerto} titulo="Registrar acerto" onFechar={() => setFolhaAcerto(false)}>
         {devedor && credor && householdId && (

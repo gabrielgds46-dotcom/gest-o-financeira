@@ -93,6 +93,14 @@ supabase/
 - [x] Fase 7 — Análise (comprometimento futuro, por categoria, método, evolução, limite por cartão) e exportação CSV
 - [x] Fase 8 — Realtime entre os aparelhos, refino mobile (aviso de nova versão, offline, toque) e deploy
 
+### Melhorias
+
+- [x] Etapa 1 — Lista do mês, folha de detalhe, edição, cancelamento, exclusão e faixa de desfazer
+- [ ] Etapa 2 — Categorias criadas por vocês
+- [ ] Etapa 3 — Layout novo e correções da auditoria de UX
+- [ ] Etapa 4 — Ajuda, tour e telas vazias
+- [ ] Etapa 5 — Lançar por frase e resumo de segunda
+
 ## Convenções
 
 - Dinheiro é `bigint` em **centavos**. Nunca float ou numeric fracionário.
@@ -102,6 +110,15 @@ supabase/
 - `competencia` é sempre o dia 1 do mês de referência.
 - Toda autorização vive no RLS. O front nunca depende de filtro manual para segurança.
 - A regra de competência do cartão (fechamento, vencimento, parcelas) vive só no front, em `calcularParcelas()`. O SQL apenas persiste as parcelas já calculadas.
+- **Parcela paga é histórico e nunca muda.** Editar um lançamento com parcela paga
+  redistribui a diferença só entre as pendentes; data, método e cartão ficam travados.
+  Ver `src/dominio/edicao.ts` e `011_edicao.sql` — a mesma regra nos dois lados.
+- **Parcela cancelada congela o valor total.** O trigger `fn_valida_soma_parcelas`
+  compara `valor_total` com a soma de *todas* as parcelas, canceladas inclusive;
+  redistribuir deixaria a cancelada sobrando. Descrição e categoria seguem livres.
+- **Nada de "tem certeza?".** Ação destrutiva acontece na hora e fica reversível por
+  alguns segundos (`components/Desfazer.tsx`). Por isso `cancelar_lancamento` devolve
+  os ids que ela cancelou e `excluir_lancamento` devolve um retrato completo.
 
 ## Aplicando as migrations
 

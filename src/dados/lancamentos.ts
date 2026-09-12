@@ -175,3 +175,120 @@ export async function reabrirMes(escopo: Escopo, competencia: DataLocal, userId:
   const { error } = await q
   if (error) throw error
 }
+
+// ---------------- Detalhe, edição e exclusão ----------------
+//
+// Toda ação destrutiva devolve o necessário para voltar atrás em 5 segundos
+// (ver components/Desfazer.tsx). É por isso que cancelar devolve os ids que
+// ELE cancelou e excluir devolve um retrato completo do lançamento.
+
+export type LancamentoDoMes = Fn['lancamentos_do_mes']['Returns'][number]
+
+export async function lancamentosDoMes(escopo: Escopo, competencia: DataLocal): Promise<LancamentoDoMes[]> {
+  const { data, error } = await supabase.rpc('lancamentos_do_mes', { p_escopo: escopo, p_competencia: competencia })
+  if (error) throw error
+  return data ?? []
+}
+
+export type ParcelaDetalhe = {
+  id: string
+  numero: number
+  valor: number
+  competencia: DataLocal
+  vencimento: DataLocal
+  status: 'pendente' | 'pago' | 'cancelado'
+  pago_em: DataLocal | null
+  mes_fechado: boolean
+}
+
+export type DetalheLancamento = {
+  id: string
+  escopo: Escopo
+  metodo: Metodo
+  natureza: Natureza
+  descricao: string
+  valor_total: number
+  data_compra: DataLocal
+  parcelas_total: number
+  cancelado_em: string | null
+  recorrencia_id: string | null
+  cartao_id: string | null
+  cartao: string | null
+  dia_fechamento: number | null
+  dia_vencimento: number | null
+  categoria_id: string
+  categoria: string
+  categoria_cor: string
+  categoria_icone: string
+  pago_por: string | null
+  pago_por_nome: string | null
+  mes_fechado: boolean
+  parcelas: ParcelaDetalhe[]
+}
+
+export async function buscarDetalhe(lancamentoId: string): Promise<DetalheLancamento> {
+  const { data, error } = await supabase.rpc('detalhe_lancamento', { p_lancamento_id: lancamentoId })
+  if (error) throw error
+  if (!data) throw new Error('Lançamento não encontrado.')
+  return data as unknown as DetalheLancamento
+}
+
+export type EdicaoLancamento = {
+  lancamentoId: string
+  valorTotal: number
+  categoriaId: string
+  descricao: string
+  dataCompra: DataLocal
+  metodo: Metodo
+  cartaoId: string | null
+  natureza: Natureza
+  /** id nulo = parcela nova. O que não vier e estiver pendente é removido. */
+  parcelas: Array<{ id: string | null; numero: number; valorCentavos: number; competencia: DataLocal; vencimento: DataLocal }>
+}
+
+export async function editarLancamento(e: EdicaoLancamento): Promise<void> {
+  const { error } = await supabase.rpc('editar_lancamento', {
+    p_lancamento_id: e.lancamentoId,
+    p_valor_total: e.valorTotal,
+    p_categoria_id: e.categoriaId,
+    p_descricao: e.descricao,
+    p_data_compra: e.dataCompra,
+    p_metodo: e.metodo,
+    p_cartao_id: e.metodo === 'credito' ? e.cartaoId : null,
+    p_natureza: e.natureza,
+    p_parcelas: e.parcelas.map((p) => ({ id: p.id, numero: p.numero, valor: p.valorCentavos, competencia: p.competencia, vencimento: p.vencimento })),
+  })
+  if (error) throw error
+}
+
+/** Cancela as parcelas ainda abertas. Devolve os ids cancelados (para desfazer). */
+export async function cancelarFuturas(lancamentoId: string): Promise<string[]> {
+  const { data, error } = await supabase.rpc('cancelar_lancamento', { p_lancamento_id: lancamentoId })
+  if (error) throw error
+  return data ?? []
+}
+
+export async function reverterCancelamento(parcelaIds: string[]): Promise<void> {
+  if (parcelaIds.length === 0) return
+  const { error } = await supabase.rpc('reverter_cancelamento', { p_parcela_ids: parcelaIds })
+  if (error) throw error
+}
+
+/** Apaga de vez. Devolve o retrato para restaurar com os mesmos ids. */
+export async function excluirLancamento(lancamentoId: string): Promise<unknown> {
+  const { data, error } = await supabase.rpc('excluir_lancamento', { p_lancamento_id: lancamentoId })
+  if (error) throw error
+  return data
+}
+
+export async function restaurarLancamento(snapshot: unknown): Promise<string> {
+  const { data, error } = await supabase.rpc('restaurar_lancamento', { p_snapshot: snapshot as never })
+  if (error) throw error
+  return data
+}
+
+/** Desfaz um "marcar como pago" (o toque errado no check). */
+export async function desmarcarParcelaPaga(parcelaId: string): Promise<void> {
+  const { error } = await supabase.from('parcelas').update({ status: 'pendente', pago_em: null }).eq('id', parcelaId)
+  if (error) throw error
+}

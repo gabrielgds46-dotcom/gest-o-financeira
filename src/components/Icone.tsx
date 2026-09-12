@@ -22,6 +22,9 @@ const CAMINHOS: Record<string, string> = {
   cadeado: 'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4',
   repetir: 'M17 2l4 4-4 4 M3 11V8a2 2 0 0 1 2-2h16 M7 22l-4-4 4-4 M21 13v3a2 2 0 0 1-2 2H3',
   mais: 'M12 5v14 M5 12h14',
+  lixeira: 'M4 7h16 M10 11v6 M14 11v6 M5 7l1 13h12l1-13 M9 7V4h6v3',
+  desfazer: 'M3 7v6h6 M3 13a9 9 0 1 0 3-7.7L3 8',
+  bloqueado: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M5 5l14 14',
   // categorias (slug -> ícone do seed)
   utensils: 'M3 2v7a3 3 0 0 0 6 0V2 M6 2v20 M18 2c-2 2-3 5-3 8v2h3v10',
   car: 'M5 17h14 M3 12l2-5h14l2 5v5H3z M7 17v2 M17 17v2 M7 13h.01 M17 13h.01',
