@@ -238,6 +238,9 @@ Depois, três lugares:
 select cron.alter_job((select jobid from cron.job where jobname = 'resumo-semanal'), active := true);
 ```
 
+> Já está ligado neste projeto. Os passos acima valem para quem for montar
+> outro do zero.
+
 Para ver o texto que sairia, sem mandar nada a ninguém:
 
 ```bash

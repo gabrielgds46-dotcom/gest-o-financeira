@@ -21,6 +21,39 @@ export type DadosSemana = {
 
 export type Mensagem = { titulo: string; corpo: string }
 
+/** Abaixo disto, comparar em porcentagem não diz nada. Ver descreverVariacao. */
+const BASE_MINIMA = 5000   // R$ 50,00
+
+/**
+ * A comparação com a semana passada, em palavras.
+ *
+ * Porcentagem só funciona quando a base é razoável. Numa semana em que
+ * saíram R$ 35, qualquer gasto normal vira "1223% a mais" — que numa tela
+ * de bloqueio lê como alarme, não como informação. Então:
+ *
+ *   base minúscula      -> diz os dois valores e pronto
+ *   dobrou ou mais      -> diz em vezes ("13x a semana passada")
+ *   variação normal     -> porcentagem, que é o que a pessoa espera
+ *
+ * Devolve null quando não há o que comparar.
+ */
+export function descreverVariacao(gasto: number, anterior: number, variacao: number | null): string | null {
+  if (variacao === null || anterior <= 0 || gasto <= 0) return null
+
+  if (anterior < BASE_MINIMA) return `contra ${reais(anterior)} na passada`
+
+  const pct = Math.round(Math.abs(variacao) * 100)
+  if (pct === 0) return 'igual à semana passada'
+
+  if (variacao >= 1) {
+    const vezes = gasto / anterior
+    const texto = vezes >= 10 ? String(Math.round(vezes)) : vezes.toFixed(1).replace('.', ',')
+    return `${texto}x a semana passada`
+  }
+
+  return `${pct}% ${variacao > 0 ? 'a mais' : 'a menos'} que na passada`
+}
+
 /**
  * Regra: o TÍTULO diz o fato, o CORPO diz o que fazer com ele. Nada de
  * "Olá! 👋 Seu resumo chegou" — a pessoa lê o título na tela de bloqueio
@@ -42,11 +75,8 @@ export function montarMensagem(nome: string, d: DadosSemana): Mensagem {
 
   const partes: string[] = []
 
-  if (d.variacao !== null && d.gasto > 0) {
-    const pct = Math.round(Math.abs(d.variacao) * 100)
-    if (pct === 0) partes.push('igual à semana passada')
-    else partes.push(`${pct}% ${d.variacao > 0 ? 'a mais' : 'a menos'} que na passada`)
-  }
+  const comparacao = descreverVariacao(d.gasto, d.gastoAnterior, d.variacao)
+  if (comparacao) partes.push(comparacao)
 
   if (d.topNome && d.topValor !== null && d.gasto > 0) {
     partes.push(`${d.topNome} levou ${reais(d.topValor)}`)

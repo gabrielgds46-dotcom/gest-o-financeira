@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { montarMensagem } from './mensagem'
+import { descreverVariacao, montarMensagem } from './mensagem'
 
 const base = {
   gasto: 60000, gastoAnterior: 40000, variacao: 0.5,
@@ -56,5 +56,41 @@ describe('montarMensagem', () => {
   it('singular e plural das contas', () => {
     expect(montarMensagem('G', { ...base, venceQtd: 1 }).corpo).toContain('em 1 conta')
     expect(montarMensagem('G', { ...base, venceQtd: 5 }).corpo).toContain('em 5 contas')
+  })
+})
+
+describe('descreverVariacao', () => {
+  it('não vira porcentagem absurda quando a semana passada foi minúscula', () => {
+    // O caso real que apareceu no disparo seco: R$ 35 -> R$ 463 dava "1223% a mais".
+    expect(descreverVariacao(46300, 3500, 12.2286)).toBe('contra R$ 35,00 na passada')
+  })
+
+  it('a partir do dobro, fala em vezes em vez de porcentagem', () => {
+    expect(descreverVariacao(40000, 10000, 3)).toBe('4,0x a semana passada')
+    expect(descreverVariacao(20000, 10000, 1)).toBe('2,0x a semana passada')
+    expect(descreverVariacao(150000, 10000, 14)).toBe('15x a semana passada')
+  })
+
+  it('variação normal continua em porcentagem', () => {
+    expect(descreverVariacao(60000, 40000, 0.5)).toBe('50% a mais que na passada')
+    expect(descreverVariacao(28000, 40000, -0.3)).toBe('30% a menos que na passada')
+  })
+
+  it('empate é empate', () => {
+    expect(descreverVariacao(40000, 40000, 0)).toBe('igual à semana passada')
+  })
+
+  it('sem base, não há comparação', () => {
+    expect(descreverVariacao(40000, 0, null)).toBeNull()
+    expect(descreverVariacao(0, 40000, -1)).toBeNull()
+  })
+
+  it('a mensagem inteira usa a nova frase', () => {
+    const m = montarMensagem('Gabriel', {
+      gasto: 46300, gastoAnterior: 3500, variacao: 12.2286,
+      topNome: 'Custos fixos', topValor: 45000, venceValor: 45000, venceQtd: 1,
+    })
+    expect(m.corpo).toBe('Contra R$ 35,00 na passada · Custos fixos levou R$ 450,00 · R$ 450,00 vencem em 1 conta')
+    expect(m.corpo).not.toContain('%')
   })
 })

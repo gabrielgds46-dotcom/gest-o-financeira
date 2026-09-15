@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { resumoSemanal, type ResumoSemana } from '../dados/semana'
+import { descreverVariacao } from '../dominio/mensagem'
 import type { Visao } from '../dados/lancamentos'
 import { formatarMoeda } from '../lib/moeda'
 import { formatarData } from '../lib/datas'
@@ -44,7 +45,7 @@ export function FolhaSemana({ aberta, visao, onFechar }: { aberta: boolean; visa
           <div className="rounded-2xl border border-line bg-s1 p-4">
             <p className="text-xs font-semibold text-ink-2">Saiu nesta semana</p>
             <p className="tnum mt-0.5 text-[34px] font-bold leading-tight tracking-[-0.03em]">{formatarMoeda(r.gasto)}</p>
-            <Comparacao variacao={r.variacao} anterior={r.gasto_anterior} />
+            <Comparacao gasto={r.gasto} anterior={r.gasto_anterior} variacao={r.variacao} />
           </div>
 
           {/* ---------- Em quê ---------- */}
@@ -110,21 +111,24 @@ function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode
 /**
  * Gastar menos é bom, então a seta para baixo é a verde. O contrário do
  * que se faz num gráfico de vendas — aqui o eixo moral é invertido.
+ *
+ * A frase vem de descreverVariacao(), a mesma da notificação: as duas
+ * dizendo coisas diferentes sobre a mesma semana seria pior que qualquer
+ * uma das duas sozinha.
  */
-function Comparacao({ variacao, anterior }: { variacao: number | null; anterior: number }) {
-  if (variacao === null) {
+function Comparacao({ gasto, anterior, variacao }: { gasto: number; anterior: number; variacao: number | null }) {
+  const frase = descreverVariacao(gasto, anterior, variacao)
+  if (!frase) {
     return <p className="mt-1 text-xs text-ink-3">Primeira semana com movimento: ainda não há com o que comparar.</p>
   }
-  const pct = Math.round(Math.abs(variacao) * 100)
-  if (pct === 0) {
-    return <p className="mt-1 text-xs text-ink-2">Igualzinho à semana passada ({formatarMoeda(anterior)}).</p>
-  }
-  const subiu = variacao > 0
+  const subiu = (variacao ?? 0) > 0
+  const neutra = frase.startsWith('igual') || frase.startsWith('contra')
   return (
-    <p className={'mt-1 inline-flex items-center gap-1 text-xs font-medium ' + (subiu ? 'text-atencao' : 'text-acao')}>
-      <span className={subiu ? '' : 'rotate-180'}>▲</span>
-      {pct}% {subiu ? 'a mais' : 'a menos'} que na semana passada
-      <span className="tnum font-normal text-ink-3">({formatarMoeda(anterior)})</span>
+    <p className={'mt-1 inline-flex items-center gap-1 text-xs font-medium ' +
+      (neutra ? 'text-ink-2' : subiu ? 'text-atencao' : 'text-acao')}>
+      {!neutra && <span className={subiu ? '' : 'rotate-180'}>▲</span>}
+      {frase}
+      {!frase.includes('R$') && <span className="tnum font-normal text-ink-3">({formatarMoeda(anterior)})</span>}
     </p>
   )
 }
