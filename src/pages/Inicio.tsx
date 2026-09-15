@@ -2,15 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { usePerfil } from '../contexts/PerfilContext'
-import { useVisao, type Escopo } from '../contexts/VisaoContext'
+import { useVisao, type Visao } from '../contexts/VisaoContext'
 import {
-  aVencer, desmarcarParcelaPaga, fecharMes, garantirSalario, gastoPorCategoria, lancamentosDoMes,
+  desmarcarParcelaPaga, fecharMes, garantirSalario, gastoPorCategoria, lancamentosDoMes,
   marcarParcelaPaga, mesEstaFechado, reabrirMes, registrarAcerto, resumoMes, saldoCasal,
-  type GastoCategoria, type LancamentoDoMes, type ParcelaAVencer, type ResumoMes, type SaldoCasal,
+  type GastoCategoria, type LancamentoDoMes, type ResumoMes, type SaldoCasal,
 } from '../dados/lancamentos'
 import { gerarPendentes } from '../dados/recorrencias'
 import { formatarMoeda } from '../lib/moeda'
-import { hojeLocal, primeiroDiaDoMes, compararDatas, partes, diasNoMes } from '../lib/datas'
+import { hojeLocal, primeiroDiaDoMes, compararDatas, partes, diasNoMes, diasEntre } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
 import { useTempoReal } from '../lib/tempoReal'
 import { Tela, Aviso } from '../components/Tela'
@@ -44,11 +44,10 @@ type Linha = {
 export function Inicio() {
   const { user } = useAuth()
   const { perfil, casa, membros, parceiro } = usePerfil()
-  const { competencia, escopo, setEscopo, ehMesAtual } = useVisao()
+  const { competencia, visao, setVisao, ehMesAtual } = useVisao()
 
   const [resumo, setResumo] = useState<ResumoMes | null>(null)
   const [categorias, setCategorias] = useState<GastoCategoria[]>([])
-  const [vencer, setVencer] = useState<ParcelaAVencer[]>([])
   const [lista, setLista] = useState<LancamentoDoMes[]>([])
   const [saldos, setSaldos] = useState<SaldoCasal[]>([])
   const [fechado, setFechado] = useState(false)
@@ -70,21 +69,24 @@ export function Inicio() {
         await garantirSalario(competencia)
         await gerarPendentes(competencia)
       }
-      const [r, c, v, f, s, l] = await Promise.all([
-        resumoMes(escopo, competencia),
-        gastoPorCategoria(escopo, competencia),
-        aVencer(escopo, null),   // o mês todo, não uma janela de 7 dias
-        mesEstaFechado(escopo, competencia, user.id, householdId),
-        escopo === 'compartilhado' && householdId ? saldoCasal(householdId) : Promise.resolve([]),
-        lancamentosDoMes(escopo, competencia),
+      // Uma consulta só para as duas listas. A de "ainda vence" é a mesma do
+      // mês, filtrada por status — separá-las em duas RPCs deixava a segunda
+      // presa ao mês corrente enquanto o seletor apontava para outro.
+      const [r, c, f, s, l] = await Promise.all([
+        resumoMes(visao, competencia),
+        gastoPorCategoria(visao, competencia),
+        // Fechar mês é por escopo: no consolidado a pergunta não existe.
+        visao === 'consolidado' ? Promise.resolve(false) : mesEstaFechado(visao, competencia, user.id, householdId),
+        visao !== 'pessoal' && householdId ? saldoCasal(householdId) : Promise.resolve([]),
+        lancamentosDoMes(visao, competencia),
       ])
-      setResumo(r); setCategorias(c); setVencer(v); setFechado(f); setSaldos(s); setLista(l)
+      setResumo(r); setCategorias(c); setFechado(f); setSaldos(s); setLista(l)
     } catch (e) {
       setErro(traduzErro((e as Error).message))
     } finally {
       setCarregando(false)
     }
-  }, [user, perfil, competencia, escopo, householdId])
+  }, [user, perfil, competencia, visao, householdId])
 
   useEffect(() => { void carregar() }, [carregar])
   useTempoReal(['lancamentos', 'parcelas', 'receitas', 'acertos', 'meses_fechados', 'orcamentos'], carregar)
@@ -103,37 +105,30 @@ export function Inicio() {
   }
 
   async function alternarFechamento() {
-    if (!user) return
+    if (!user || visao === 'consolidado') return
     try {
-      if (fechado) await reabrirMes(escopo, competencia, user.id, householdId)
-      else await fecharMes(escopo, competencia, user.id, householdId)
+      if (fechado) await reabrirMes(visao, competencia, user.id, householdId)
+      else await fecharMes(visao, competencia, user.id, householdId)
       await carregar()
     } catch (e) { setErro(traduzErro((e as Error).message)) }
   }
 
   const linhas = useMemo<Linha[]>(() => (
-    verTudo
-      ? lista.map((l) => ({
-          parcelaId: l.parcela_id, lancamentoId: l.lancamento_id,
-          titulo: l.descricao || l.categoria_nome,
-          subtitulo: [
-            l.parcelas_total > 1 ? `${l.numero}/${l.parcelas_total}` : '',
-            l.cartao_apelido ?? (l.metodo === 'a_vista' ? 'Pix / Débito' : ''),
-          ].filter(Boolean).join(' · '),
-          valor: l.valor, vencimento: l.vencimento, cor: l.categoria_cor, icone: l.categoria_icone,
-          pago: l.status === 'pago', diasRestantes: null,
-        }))
-      : vencer.map((p) => ({
-          parcelaId: p.parcela_id, lancamentoId: p.lancamento_id,
-          titulo: p.descricao || p.categoria_nome,
-          subtitulo: [
-            p.parcelas_total > 1 ? `${p.numero}/${p.parcelas_total}` : '',
-            p.cartao_apelido ?? (p.metodo === 'a_vista' ? 'Pix / Débito' : ''),
-          ].filter(Boolean).join(' · '),
-          valor: p.valor, vencimento: p.vencimento, cor: p.categoria_cor, icone: p.categoria_icone,
-          pago: false, diasRestantes: p.dias_restantes,
-        }))
-  ), [verTudo, lista, vencer])
+    lista
+      .filter((l) => verTudo || l.status === 'pendente')
+      .map((l) => ({
+        parcelaId: l.parcela_id, lancamentoId: l.lancamento_id,
+        titulo: l.descricao || l.categoria_nome,
+        subtitulo: [
+          l.parcelas_total > 1 ? `${l.numero}/${l.parcelas_total}` : '',
+          l.cartao_apelido ?? (l.metodo === 'a_vista' ? 'Pix / Débito' : ''),
+        ].filter(Boolean).join(' · '),
+        valor: l.valor, vencimento: l.vencimento, cor: l.categoria_cor, icone: l.categoria_icone,
+        pago: l.status === 'pago',
+        // A contagem de dias só quer dizer algo no mês corrente.
+        diasRestantes: l.status === 'pendente' && ehMesAtual ? diasEntre(hoje, l.vencimento) : null,
+      }))
+  ), [verTudo, lista, ehMesAtual, hoje])
 
   const podeFechar = compararDatas(competencia, primeiroDiaDoMes(hoje)) < 0
   const comTeto = categorias.filter((c) => c.teto !== null || c.valor > 0)
@@ -156,14 +151,24 @@ export function Inicio() {
       }
     >
       <div className="space-y-4">
-        <Alternador<Escopo>
-          rotulo="Escopo"
-          opcoes={[{ valor: 'pessoal', rotulo: 'Pessoal' }, { valor: 'compartilhado', rotulo: 'Casal' }]}
-          valor={escopo}
-          onChange={setEscopo}
-          desabilitados={parceiro ? [] : ['compartilhado']}
+        <Alternador<Visao>
+          rotulo="Visão"
+          opcoes={[
+            { valor: 'pessoal', rotulo: 'Meu' },
+            { valor: 'compartilhado', rotulo: 'Casal' },
+            { valor: 'consolidado', rotulo: 'Tudo' },
+          ]}
+          valor={visao}
+          onChange={setVisao}
+          desabilitados={parceiro ? [] : ['compartilhado', 'consolidado']}
         />
-        {!parceiro && <p className="text-xs text-ink-3">O modo Casal ativa quando seu par entrar na casa.</p>}
+        {!parceiro && <p className="text-xs text-ink-3">Casal e Tudo ativam quando seu par entrar na casa.</p>}
+        {visao === 'consolidado' && (
+          <p className="text-xs text-ink-3">
+            Seu pessoal mais o compartilhado da casa. A renda aqui é a sua mais a da casa — não entra o
+            salário do seu par, senão o número ficaria otimista.
+          </p>
+        )}
 
         <SeletorMes />
 
@@ -275,7 +280,7 @@ export function Inicio() {
         </Secao>
 
         {/* ---------- Entre vocês ---------- */}
-        {escopo === 'compartilhado' && parceiro && user && (
+        {visao !== 'pessoal' && parceiro && user && (
           <Secao titulo="Entre vocês">
             <div className="rounded-[20px] border border-line bg-s1 p-4">
               <div className="mb-3 flex flex-wrap gap-2.5">
@@ -298,7 +303,7 @@ export function Inicio() {
           </Secao>
         )}
 
-        {(podeFechar || fechado) && (
+        {visao !== 'consolidado' && (podeFechar || fechado) && (
           <Botao variante="fantasma" onClick={() => void alternarFechamento()}>
             <Icone nome="cadeado" tamanho={18} className="mr-2" /> {fechado ? 'Reabrir mês' : 'Fechar mês'}
           </Botao>

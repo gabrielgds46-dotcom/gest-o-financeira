@@ -32,11 +32,11 @@ import { EIXO, GRADE, LARGURA_EIXO_Y, rotuloMes, rotuloValor } from '../componen
 export function Analise() {
   const { user } = useAuth()
   const { parceiro } = usePerfil()
-  const { competencia, escopo } = useVisao()
+  const { competencia, visao: visaoGlobal } = useVisao()
 
-  // A Análise tem uma visão própria (inclui Consolidado), semeada pelo escopo
-  // das outras abas para não parecer que o app "esqueceu" onde o usuário estava.
-  const [visao, setVisao] = useState<Visao>(escopo)
+  // A Análise tem a sua própria seleção, semeada pela das outras abas para
+  // não parecer que o app "esqueceu" onde o usuário estava.
+  const [visao, setVisao] = useState<Visao>(visaoGlobal)
   const [resumo, setResumo] = useState<ResumoMes | null>(null)
   const [categorias, setCategorias] = useState<CategoriaAnalise[]>([])
   const [metodo, setMetodo] = useState({ credito: 0, a_vista: 0 })
@@ -53,7 +53,7 @@ export function Analise() {
     setErro(null)
     try {
       const [r, c, m, e, f, k] = await Promise.all([
-        resumoMes(visao === 'consolidado' ? 'compartilhado' : visao, competencia),
+        resumoMes(visao, competencia),
         analiseCategorias(visao, competencia),
         analiseMetodo(visao, competencia),
         evolucaoMensal(visao, competencia, 6),

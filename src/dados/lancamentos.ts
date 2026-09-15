@@ -5,6 +5,12 @@ import type { DataLocal } from '../lib/datas'
 
 type Fn = Database['public']['Functions']
 export type Escopo = Database['public']['Enums']['escopo_t']
+/**
+ * O que a tela está olhando. 'consolidado' não é um escopo de lançamento —
+ * é a soma do seu pessoal com o compartilhado da casa. Ver 014_consolidado.sql
+ * para o que isso faz com a renda.
+ */
+export type Visao = Escopo | 'consolidado'
 export type Metodo = Database['public']['Enums']['metodo_t']
 export type Natureza = Database['public']['Enums']['natureza_t']
 export type Categoria = Tables<'categorias'>
@@ -117,21 +123,21 @@ export async function garantirSalario(competencia: DataLocal): Promise<void> {
   if (error) throw error
 }
 
-export async function resumoMes(escopo: Escopo, competencia: DataLocal): Promise<ResumoMes> {
-  const { data, error } = await supabase.rpc('resumo_mes', { p_escopo: escopo, p_competencia: competencia })
+export async function resumoMes(visao: Visao, competencia: DataLocal): Promise<ResumoMes> {
+  const { data, error } = await supabase.rpc('resumo_mes', { p_visao: visao, p_competencia: competencia })
   if (error) throw error
   return data[0] ?? { renda: 0, gasto: 0, reserva: 0, resgate: 0, credito: 0, sobra: 0, taxa_poupanca: 0, comprometimento: 0, a_vencer_mes: 0 }
 }
 
-export async function gastoPorCategoria(escopo: Escopo, competencia: DataLocal): Promise<GastoCategoria[]> {
-  const { data, error } = await supabase.rpc('gasto_por_categoria', { p_escopo: escopo, p_competencia: competencia })
+export async function gastoPorCategoria(visao: Visao, competencia: DataLocal): Promise<GastoCategoria[]> {
+  const { data, error } = await supabase.rpc('gasto_por_categoria', { p_visao: visao, p_competencia: competencia })
   if (error) throw error
   return data ?? []
 }
 
 /** `dias = null` traz tudo o que ainda vence dentro do mês corrente. */
-export async function aVencer(escopo: Escopo, dias: number | null = 7): Promise<ParcelaAVencer[]> {
-  const { data, error } = await supabase.rpc('a_vencer', { p_escopo: escopo, p_dias: dias })
+export async function aVencer(visao: Visao, dias: number | null = 7): Promise<ParcelaAVencer[]> {
+  const { data, error } = await supabase.rpc('a_vencer', { p_visao: visao, p_dias: dias })
   if (error) throw error
   return data ?? []
 }
@@ -189,8 +195,8 @@ export async function reabrirMes(escopo: Escopo, competencia: DataLocal, userId:
 
 export type LancamentoDoMes = Fn['lancamentos_do_mes']['Returns'][number]
 
-export async function lancamentosDoMes(escopo: Escopo, competencia: DataLocal): Promise<LancamentoDoMes[]> {
-  const { data, error } = await supabase.rpc('lancamentos_do_mes', { p_escopo: escopo, p_competencia: competencia })
+export async function lancamentosDoMes(visao: Visao, competencia: DataLocal): Promise<LancamentoDoMes[]> {
+  const { data, error } = await supabase.rpc('lancamentos_do_mes', { p_visao: visao, p_competencia: competencia })
   if (error) throw error
   return data ?? []
 }

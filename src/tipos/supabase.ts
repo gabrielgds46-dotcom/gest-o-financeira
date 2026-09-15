@@ -753,7 +753,7 @@ export type Database = {
       }
       a_vencer: {
         /** p_dias null = até o último dia do mês corrente. */
-        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_dias?: number | null }
+        Args: { p_visao: string; p_dias?: number | null }
         Returns: {
           parcela_id: string
           lancamento_id: string
@@ -771,6 +771,7 @@ export type Database = {
           competencia: string
           dias_restantes: number
           pago_por: string
+          escopo: Database["public"]["Enums"]["escopo_t"]
         }[]
       }
       cancelar_lancamento: {
@@ -810,7 +811,7 @@ export type Database = {
         Returns: undefined
       }
       lancamentos_do_mes: {
-        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Args: { p_visao: string; p_competencia: string }
         Returns: {
           parcela_id: string
           lancamento_id: string
@@ -829,6 +830,7 @@ export type Database = {
           pago_em: string | null
           pago_por: string
           recorrencia_id: string | null
+          escopo: Database["public"]["Enums"]["escopo_t"]
         }[]
       }
       criar_categoria: {
@@ -885,10 +887,11 @@ export type Database = {
         Returns: boolean
       }
       fn_meu_household: { Args: never; Returns: string }
+      fn_valida_visao: { Args: { p_visao: string }; Returns: string | null }
       fn_sou_membro: { Args: { p_household: string }; Returns: boolean }
       garantir_salario: { Args: { p_competencia: string }; Returns: undefined }
       gasto_por_categoria: {
-        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Args: { p_visao: string; p_competencia: string }
         Returns: {
           categoria_id: string
           slug: string
@@ -937,7 +940,7 @@ export type Database = {
         }
       }
       resumo_mes: {
-        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_competencia: string }
+        Args: { p_visao: string; p_competencia: string }
         Returns: {
           renda: number
           gasto: number

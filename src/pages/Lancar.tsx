@@ -25,7 +25,9 @@ import { FormCategoria } from '../components/FormCategoria'
 export function Lancar() {
   const { user } = useAuth()
   const { perfil, parceiro } = usePerfil()
-  const { escopo: escopoVisao } = useVisao()
+  // Lançamento é sempre pessoal ou compartilhado: "Tudo" não é um escopo
+  // de escrita, então cai em pessoal.
+  const { escopoDeEscrita } = useVisao()
   const navigate = useNavigate()
 
   // ---------- dados de apoio ----------
@@ -35,7 +37,7 @@ export function Lancar() {
 
   // ---------- formulário ----------
   const [valor, setValor] = useState<number | null>(null)
-  const [escopo, setEscopo] = useState<Escopo>(parceiro ? escopoVisao : 'pessoal')
+  const [escopo, setEscopo] = useState<Escopo>(parceiro ? escopoDeEscrita : 'pessoal')
   const [metodo, setMetodo] = useState<Metodo>('credito')
   const [cartaoId, setCartaoId] = useState<string | null>(null)
   const [categoriaId, setCategoriaId] = useState<string | null>(null)

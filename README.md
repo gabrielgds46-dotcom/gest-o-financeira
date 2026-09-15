@@ -121,6 +121,12 @@ supabase/
   um cinza que ficava em 3,67:1 e reprovava no AA.
 - **Verde é ação e dinheiro positivo, e nada mais.** As duas pessoas da casa são
   azul (`p1`) e âmbar (`p2`), que sobrevivem a daltonismo — verde/vermelho não.
+- **Três visões, não duas** (`VisaoContext`): Meu, Casal e Tudo. `Tudo` não é um
+  escopo de lançamento — quem escreve (Lançar, recorrências, orçamentos) continua
+  com dois valores. No Casal a renda soma os dois salários, porque a pergunta é de
+  onde sai o dinheiro das contas da casa. No Tudo, **não**: o app só consegue ver o
+  gasto pessoal de quem está olhando, então somar os dois salários contra um gasto
+  só daria um número otimista. Ver o cabeçalho de `014_consolidado.sql`.
 - **O número do topo mostra a decomposição, não um número solto.** Os quatro
   pedaços (pago, guardado, a vencer, livre) somam a renda do mês; se não
   somassem, a barra seria enfeite. Ver `components/Hero.tsx`.
