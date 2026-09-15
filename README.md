@@ -98,7 +98,7 @@ supabase/
 - [x] Etapa 1 — Lista do mês, folha de detalhe, edição, cancelamento, exclusão e faixa de desfazer
 - [x] Etapa 2 — Categorias criadas por vocês
 - [x] Etapa 3 — Layout novo e correções da auditoria de UX
-- [ ] Etapa 4 — Ajuda, tour e telas vazias
+- [x] Etapa 4 — Ajuda, tour e telas vazias
 - [ ] Etapa 5 — Lançar por frase e resumo de segunda
 
 ## Convenções
@@ -133,6 +133,14 @@ supabase/
 - **Categoria com `household_id` null é embutida** (do seed, igual para todo mundo,
   ninguém edita); com valor, é da casa. O slug é único POR CASA, não no mundo.
   Remover é reversível: some se ninguém usou, arquiva se já tem lançamento.
+- **A Ajuda só descreve o que o app faz hoje** (`conteudo/ajuda.ts`). Ajuda que
+  cita um botão inexistente é pior que ajuda nenhuma: a pessoa procura, não acha,
+  e passa a desconfiar do resto. Por isso o lançamento por frase não está lá — é
+  da Etapa 5.
+- **Passo de tour sem alvo é pulado, não mostrado vazio** (`Tour.tsx`). A tela
+  muda conforme o mês, a visão e o que já foi lançado.
+- **Vazio não é erro.** Cada tela vazia diz o que falta, por que está vazia, e
+  oferece a ação que resolve — nunca "nenhum registro encontrado".
 - **Nada de "tem certeza?".** Ação destrutiva acontece na hora e fica reversível por
   alguns segundos (`components/Desfazer.tsx`). Por isso `cancelar_lancamento` devolve
   os ids que ela cancelou e `excluir_lancamento` devolve um retrato completo.

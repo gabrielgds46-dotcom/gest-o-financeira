@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { usePerfil } from '../contexts/PerfilContext'
 import { Carregando } from './Carregando'
 import { BarraAbas } from './BarraAbas'
+import { BotaoAjuda } from './BotaoAjuda'
 
 /** Exige login. */
 export function RotaProtegida() {
@@ -22,6 +23,7 @@ export function RotaComCasa() {
   return (
     <>
       <Outlet />
+      <BotaoAjuda />
       <BarraAbas />
     </>
   )

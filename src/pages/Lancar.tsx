@@ -172,7 +172,9 @@ export function Lancar() {
       }
     >
       <div className="space-y-5">
-        <CampoMoeda rotulo="Valor" valor={valor} onChange={setValor} autoFocus grande />
+        <div data-tour="valor">
+          <CampoMoeda rotulo="Valor" valor={valor} onChange={setValor} autoFocus grande />
+        </div>
 
         <Alternador<Escopo>
           rotulo="Escopo"
@@ -225,7 +227,7 @@ export function Lancar() {
           )
         )}
 
-        <div>
+        <div data-tour="categoria">
           <span className="mb-1.5 block text-sm font-medium text-ink-2">Categoria</span>
           <GridCategorias
             categorias={categorias} valor={categoriaId} sugerida={sugerida}
@@ -262,7 +264,7 @@ export function Lancar() {
 
         {/* Prévia obrigatória */}
         {previa.parcelas.length > 0 && (
-          <p className="rounded-xl bg-s1 px-4 py-3 text-center text-sm font-medium text-ink" aria-live="polite">
+          <p data-tour="previa" className="rounded-xl bg-s1 px-4 py-3 text-center text-sm font-medium text-ink" aria-live="polite">
             {descreverParcelamento(previa.parcelas)}
           </p>
         )}

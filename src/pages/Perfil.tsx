@@ -17,6 +17,7 @@ import { ListaCartoes } from '../components/ListaCartoes'
 import { PainelRecorrencias } from '../components/PainelRecorrencias'
 import { PainelOrcamentos } from '../components/PainelOrcamentos'
 import { PainelCategorias } from '../components/PainelCategorias'
+import { Vazio } from '../components/Vazio'
 import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 import { Icone } from '../components/Icone'
 
@@ -98,15 +99,26 @@ export function Perfil() {
         </Cartao>
 
         {/* ---------- Cartões ---------- */}
-        <Cartao>
-          <Cabecalho titulo="Cartões de crédito" subtitulo={`${cartoes.filter((c) => c.ativo).length} ativo(s)`} />
-          <div className="mt-1">
-            <ListaCartoes cartoes={cartoes} onEditar={(c) => { setCartaoEditando(c); setFolha('editarCartao') }} />
-          </div>
-          <Botao variante="secundario" className="mt-3" onClick={() => setFolha('novoCartao')}>+ Adicionar cartão</Botao>
-        </Cartao>
+        <div data-tour="cartoes">
+          <Cartao>
+            <Cabecalho titulo="Cartões de crédito" subtitulo={`${cartoes.filter((c) => c.ativo).length} ativo(s)`} />
+            {cartoes.length === 0 ? (
+              <Vazio
+                icone="cartao"
+                titulo="Nenhum cartão ainda"
+                texto="O dia que fecha e o dia que vence são o que decide em qual fatura cada compra cai. Sem cartão, só dá para lançar no Pix ou débito."
+              />
+            ) : (
+              <div className="mt-1">
+                <ListaCartoes cartoes={cartoes} onEditar={(c) => { setCartaoEditando(c); setFolha('editarCartao') }} />
+              </div>
+            )}
+            <Botao variante="secundario" className="mt-3" onClick={() => setFolha('novoCartao')}>+ Adicionar cartão</Botao>
+          </Cartao>
+        </div>
 
-        {/* ---------- Recorrências e orçamentos ---------- */}
+        {/* ---------- Recorrências, orçamentos e categorias ---------- */}
+        <div data-tour="config">
         <Cartao>
           <button type="button" onClick={() => setFolha('recorrencias')} className="flex w-full items-center gap-3 py-1 text-left">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-s2 text-ink-2"><Icone nome="repetir" /></span>
@@ -135,6 +147,7 @@ export function Perfil() {
             <Icone nome="seta" className="text-ink-3" />
           </button>
         </Cartao>
+        </div>
 
         <Botao variante="fantasma" onClick={() => void sair()}>
           <Icone nome="sair" className="mr-2" /> Sair da conta

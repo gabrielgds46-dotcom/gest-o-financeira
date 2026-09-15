@@ -22,6 +22,7 @@ import { CampoMoeda } from '../components/CampoMoeda'
 import { Campo } from '../components/Campo'
 import { Icone, type NomeIcone } from '../components/Icone'
 import { Hero } from '../components/Hero'
+import { Vazio } from '../components/Vazio'
 import { FolhaLancamento } from '../components/FolhaLancamento'
 import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 
@@ -145,23 +146,25 @@ export function Inicio() {
       titulo={casa?.nome ?? 'Início'}
       subtitulo={progresso ?? undefined}
       acao={
-        <Link to="/lancar" aria-label="Lançar" className="flex h-11 w-11 items-center justify-center rounded-full bg-acao text-bg active:scale-95">
+        <Link to="/lancar" aria-label="Lançar" data-tour="lancar" className="flex h-11 w-11 items-center justify-center rounded-full bg-acao text-bg active:scale-95">
           <Icone nome="mais" />
         </Link>
       }
     >
       <div className="space-y-4">
-        <Alternador<Visao>
-          rotulo="Visão"
-          opcoes={[
-            { valor: 'pessoal', rotulo: 'Meu' },
-            { valor: 'compartilhado', rotulo: 'Casal' },
-            { valor: 'consolidado', rotulo: 'Tudo' },
-          ]}
-          valor={visao}
-          onChange={setVisao}
-          desabilitados={parceiro ? [] : ['compartilhado', 'consolidado']}
-        />
+        <div data-tour="visao">
+          <Alternador<Visao>
+            rotulo="Visão"
+            opcoes={[
+              { valor: 'pessoal', rotulo: 'Meu' },
+              { valor: 'compartilhado', rotulo: 'Casal' },
+              { valor: 'consolidado', rotulo: 'Tudo' },
+            ]}
+            valor={visao}
+            onChange={setVisao}
+            desabilitados={parceiro ? [] : ['compartilhado', 'consolidado']}
+          />
+        </div>
         {!parceiro && <p className="text-xs text-ink-3">Casal e Tudo ativam quando seu par entrar na casa.</p>}
         {visao === 'consolidado' && (
           <p className="text-xs text-ink-3">
@@ -170,7 +173,7 @@ export function Inicio() {
           </p>
         )}
 
-        <SeletorMes />
+        <div data-tour="mes"><SeletorMes /></div>
 
         {erro && <Aviso>{erro}</Aviso>}
         {fechado && (
@@ -179,7 +182,7 @@ export function Inicio() {
           </Aviso>
         )}
 
-        <Hero resumo={resumo} carregando={carregando} />
+        <div data-tour="hero"><Hero resumo={resumo} carregando={carregando} /></div>
 
         {resumo && resumo.comprometimento > LIMITE_COMPROMETIMENTO && (
           <Aviso>
@@ -196,14 +199,29 @@ export function Inicio() {
             </button>
           }
         >
-          {linhas.length === 0 ? (
-            <p className="py-2 text-sm text-ink-3">
-              {carregando ? 'Carregando…'
-                : verTudo ? 'Nenhum lançamento neste mês.'
-                : 'Nada pendente até o fim do mês.'}
-            </p>
+          {carregando ? (
+            <p className="py-2 text-sm text-ink-3">Carregando…</p>
+          ) : linhas.length === 0 ? (
+            verTudo ? (
+              <Vazio
+                icone="receipt"
+                titulo="Nenhum lançamento neste mês"
+                texto={ehMesAtual
+                  ? 'Assim que você lançar o primeiro gasto ele aparece aqui, junto com as parcelas que caem neste mês.'
+                  : 'Este mês não teve movimento. Use as setas acima para olhar outro.'}
+                acao={ehMesAtual ? <Link to="/lancar" className="flex h-12 w-full items-center justify-center rounded-xl bg-acao text-base font-semibold text-bg">Lançar o primeiro</Link> : undefined}
+              />
+            ) : (
+              <Vazio
+                icone="check"
+                titulo={lista.length === 0 ? 'Nada lançado ainda' : 'Tudo pago'}
+                texto={lista.length === 0
+                  ? 'Quando houver contas neste mês, as que ainda não foram pagas ficam aqui.'
+                  : 'Nenhuma conta em aberto neste mês. Toque em “Ver tudo” para rever o que já foi pago.'}
+              />
+            )
           ) : (
-            <ul>
+            <ul data-tour="lista">
               {linhas.map((l) => (
                 <li key={l.parcelaId} className="border-t border-line first:border-t-0">
                   <div className={'flex items-center gap-2.5 ' + (l.pago ? 'opacity-[0.42]' : '')}>
@@ -247,9 +265,13 @@ export function Inicio() {
         {/* ---------- Orçamento ---------- */}
         <Secao titulo="Orçamento">
           {comTeto.length === 0 ? (
-            <p className="py-2 text-sm text-ink-3">Sem gastos neste mês. Tetos por categoria ficam no Perfil.</p>
+            <Vazio
+              icone="analise"
+              titulo="Sem gastos neste mês"
+              texto="Conforme você lançar, cada categoria aparece aqui com o quanto já foi. Tetos mensais são opcionais e ficam em Perfil, Orçamentos."
+            />
           ) : (
-            <ul className="space-y-3.5">
+            <ul className="space-y-3.5" data-tour="orcamento">
               {comTeto.map((c) => {
                 const estourou = c.teto !== null && c.valor > c.teto
                 return (
