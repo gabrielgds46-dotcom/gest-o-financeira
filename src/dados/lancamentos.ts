@@ -14,8 +14,12 @@ export type GastoCategoria = Fn['gasto_por_categoria']['Returns'][number]
 export type ParcelaAVencer = Fn['a_vencer']['Returns'][number]
 export type SaldoCasal = Fn['saldo_casal']['Returns'][number]
 
+/**
+ * As categorias escolhíveis num lançamento: embutidas + as da casa, só as
+ * ativas. Arquivada some daqui mas continua no histórico (ver 012_categorias).
+ */
 export async function listarCategorias(): Promise<Categoria[]> {
-  const { data, error } = await supabase.from('categorias').select('*').order('ordem')
+  const { data, error } = await supabase.from('categorias').select('*').eq('ativo', true).order('ordem')
   if (error) throw error
   return data ?? []
 }

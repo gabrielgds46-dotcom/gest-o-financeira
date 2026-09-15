@@ -16,9 +16,11 @@ import { FormCartao } from '../components/FormCartao'
 import { ListaCartoes } from '../components/ListaCartoes'
 import { PainelRecorrencias } from '../components/PainelRecorrencias'
 import { PainelOrcamentos } from '../components/PainelOrcamentos'
+import { PainelCategorias } from '../components/PainelCategorias'
+import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 import { Icone } from '../components/Icone'
 
-type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | 'recorrencias' | 'orcamentos' | null
+type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | 'recorrencias' | 'orcamentos' | 'categorias' | null
 
 export function Perfil() {
   const { user, sair } = useAuth()
@@ -26,6 +28,7 @@ export function Perfil() {
   const [folha, setFolha] = useState<Folhas>(null)
   const [cartoes, setCartoes] = useState<CartaoT[]>([])
   const [cartaoEditando, setCartaoEditando] = useState<CartaoT | null>(null)
+  const [pedido, setPedido] = useState<PedidoDesfazer | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
   const carregarCartoes = useCallback(async () => {
@@ -114,6 +117,15 @@ export function Perfil() {
             </span>
             <Icone nome="seta" className="text-zinc-600" />
           </button>
+          <div className="my-1 h-px bg-zinc-800" />
+          <button type="button" onClick={() => setFolha('categorias')} className="flex w-full items-center gap-3 py-1 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="presente" /></span>
+            <span className="flex-1">
+              <span className="block font-semibold">Categorias</span>
+              <span className="block text-xs text-zinc-500">As oito de fábrica mais as que vocês criarem</span>
+            </span>
+            <Icone nome="seta" className="text-zinc-600" />
+          </button>
         </Cartao>
 
         <Botao variante="fantasma" onClick={() => void sair()}>
@@ -145,6 +157,12 @@ export function Perfil() {
       <Folha aberta={folha === 'orcamentos'} titulo="Orçamentos" onFechar={fechar}>
         <PainelOrcamentos ownerId={user.id} householdId={perfil.household_id} temParceiro={!!parceiro} />
       </Folha>
+
+      <Folha aberta={folha === 'categorias'} titulo="Categorias" onFechar={fechar}>
+        <PainelCategorias onDesfazer={setPedido} />
+      </Folha>
+
+      <Desfazer pedido={pedido} onFim={() => setPedido(null)} />
 
       <Folha aberta={folha === 'novoCartao'} titulo="Novo cartão" onFechar={fechar}>
         <FormCartao onSalvar={salvarCartao} />

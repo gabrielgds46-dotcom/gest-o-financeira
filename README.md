@@ -96,7 +96,7 @@ supabase/
 ### Melhorias
 
 - [x] Etapa 1 — Lista do mês, folha de detalhe, edição, cancelamento, exclusão e faixa de desfazer
-- [ ] Etapa 2 — Categorias criadas por vocês
+- [x] Etapa 2 — Categorias criadas por vocês
 - [ ] Etapa 3 — Layout novo e correções da auditoria de UX
 - [ ] Etapa 4 — Ajuda, tour e telas vazias
 - [ ] Etapa 5 — Lançar por frase e resumo de segunda
@@ -116,6 +116,9 @@ supabase/
 - **Parcela cancelada congela o valor total.** O trigger `fn_valida_soma_parcelas`
   compara `valor_total` com a soma de *todas* as parcelas, canceladas inclusive;
   redistribuir deixaria a cancelada sobrando. Descrição e categoria seguem livres.
+- **Categoria com `household_id` null é embutida** (do seed, igual para todo mundo,
+  ninguém edita); com valor, é da casa. O slug é único POR CASA, não no mundo.
+  Remover é reversível: some se ninguém usou, arquiva se já tem lançamento.
 - **Nada de "tem certeza?".** Ação destrutiva acontece na hora e fica reversível por
   alguns segundos (`components/Desfazer.tsx`). Por isso `cancelar_lancamento` devolve
   os ids que ela cancelou e `excluir_lancamento` devolve um retrato completo.

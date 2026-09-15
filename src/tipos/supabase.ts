@@ -112,8 +112,13 @@ export type Database = {
       }
       categorias: {
         Row: {
+          ativo: boolean
           cor: string
+          created_at: string
+          criada_por: string | null
           grupo: Database["public"]["Enums"]["grupo_categoria_t"]
+          /** null = embutida (do seed, igual para todo mundo). */
+          household_id: string | null
           icone: string
           id: string
           nome: string
@@ -121,8 +126,12 @@ export type Database = {
           slug: string
         }
         Insert: {
+          ativo?: boolean
           cor: string
+          created_at?: string
+          criada_por?: string | null
           grupo: Database["public"]["Enums"]["grupo_categoria_t"]
+          household_id?: string | null
           icone: string
           id?: string
           nome: string
@@ -130,8 +139,12 @@ export type Database = {
           slug: string
         }
         Update: {
+          ativo?: boolean
           cor?: string
+          created_at?: string
+          criada_por?: string | null
           grupo?: Database["public"]["Enums"]["grupo_categoria_t"]
+          household_id?: string | null
           icone?: string
           id?: string
           nome?: string
@@ -817,6 +830,29 @@ export type Database = {
           recorrencia_id: string | null
         }[]
       }
+      criar_categoria: {
+        Args: {
+          p_nome: string
+          p_icone: string
+          p_cor: string
+          p_grupo?: Database["public"]["Enums"]["grupo_categoria_t"]
+        }
+        Returns: string
+      }
+      editar_categoria: {
+        Args: { p_id: string; p_nome: string; p_icone: string; p_cor: string }
+        Returns: undefined
+      }
+      remover_categoria: {
+        /** { acao: 'excluida' | 'arquivada', categoria: {...}, usos?: number } */
+        Args: { p_id: string }
+        Returns: Json
+      }
+      restaurar_categoria: {
+        Args: { p_snapshot: Json }
+        Returns: string
+      }
+      fn_slug: { Args: { p_texto: string }; Returns: string }
       criar_household: { Args: { p_nome: string }; Returns: string }
       criar_lancamento: {
         Args: {

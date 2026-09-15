@@ -20,6 +20,7 @@ import { GridCategorias } from '../components/GridCategorias'
 import { Botao } from '../components/Botao'
 import { Folha } from '../components/Folha'
 import { Icone } from '../components/Icone'
+import { FormCategoria } from '../components/FormCategoria'
 
 export function Lancar() {
   const { user } = useAuth()
@@ -50,6 +51,7 @@ export function Lancar() {
   const [sucesso, setSucesso] = useState<string | null>(null)
   const [ocupado, setOcupado] = useState(false)
   const [folhaRenda, setFolhaRenda] = useState(false)
+  const [folhaCategoria, setFolhaCategoria] = useState(false)
 
   useEffect(() => {
     Promise.all([listarCategorias(), listarCartoesDaCasa()])
@@ -219,7 +221,11 @@ export function Lancar() {
 
         <div>
           <span className="mb-1.5 block text-sm font-medium text-zinc-300">Categoria</span>
-          <GridCategorias categorias={categorias} valor={categoriaId} sugerida={sugerida} onChange={(id) => { setCategoriaId(id); setCategoriaManual(true) }} />
+          <GridCategorias
+            categorias={categorias} valor={categoriaId} sugerida={sugerida}
+            onChange={(id) => { setCategoriaId(id); setCategoriaManual(true) }}
+            onNova={() => setFolhaCategoria(true)}
+          />
         </div>
 
         {ehReserva && (
@@ -274,6 +280,21 @@ export function Lancar() {
         <Botao onClick={salvar} ocupado={ocupado} disabled={semCartao}>Lançar</Botao>
         <Botao variante="secundario" onClick={() => setFolhaRenda(true)}>+ Renda extra</Botao>
       </div>
+
+      <Folha aberta={folhaCategoria} titulo="Nova categoria" onFechar={() => setFolhaCategoria(false)}>
+        <FormCategoria
+          categoria={null}
+          onSalvo={async () => {
+            // Recarrega a grade e já deixa a nova selecionada: quem criou
+            // a categoria estava no meio de um lançamento.
+            const lista = await listarCategorias()
+            setCategorias(lista)
+            const nova = lista.find((c) => !categorias.some((v) => v.id === c.id))
+            if (nova) { setCategoriaId(nova.id); setCategoriaManual(true) }
+            setFolhaCategoria(false)
+          }}
+        />
+      </Folha>
 
       <Folha aberta={folhaRenda} titulo="Renda extra" onFechar={() => setFolhaRenda(false)}>
         {user && perfil && (
