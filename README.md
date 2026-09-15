@@ -99,7 +99,7 @@ supabase/
 - [x] Etapa 2 — Categorias criadas por vocês
 - [x] Etapa 3 — Layout novo e correções da auditoria de UX
 - [x] Etapa 4 — Ajuda, tour e telas vazias
-- [ ] Etapa 5 — Lançar por frase e resumo de segunda
+- [x] Etapa 5 — Lançar por frase e resumo de segunda
 
 ## Convenções
 
@@ -141,6 +141,13 @@ supabase/
   muda conforme o mês, a visão e o que já foi lançado.
 - **Vazio não é erro.** Cada tela vazia diz o que falta, por que está vazia, e
   oferece a ação que resolve — nunca "nenhum registro encontrado".
+- **A barra de frase preenche, nunca salva** (`dominio/frase.ts`). O parser é
+  deliberadamente burro: o que não reconhece vira descrição, e o que reconhece
+  aparece em fichas que a pessoa confere. Errar para "não entendi" é barato;
+  errar para "achei que era 3x" custa um lançamento errado que ninguém percebe.
+- **O texto da notificação é domínio, não detalhe da Edge Function**
+  (`dominio/mensagem.ts`). A única forma de julgar uma notificação é ler as
+  várias que ela pode virar, lado a lado, num teste.
 - **Nada de "tem certeza?".** Ação destrutiva acontece na hora e fica reversível por
   alguns segundos (`components/Desfazer.tsx`). Por isso `cancelar_lancamento` devolve
   os ids que ela cancelou e `excluir_lancamento` devolve um retrato completo.
@@ -203,6 +210,42 @@ pública (vai no bundle do app) e a Edge Function exige apenas um JWT válido; c
 a geração é idempotente e não destrutiva, disparar fora de hora não causa dano, e
 nenhum segredo passa a morar no banco. Para reprocessar um mês, envie no corpo
 `{"competencia":"2026-10-01"}`.
+
+## Ligando o resumo de segunda (push)
+
+O resumo funciona dentro do app desde já — o botão "Resumo da semana" no
+Início, e a folha que a notificação abre. O **push** precisa de um par de
+chaves VAPID, que identifica o servidor para o serviço de notificação do
+navegador. Gere o seu:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Depois, três lugares:
+
+1. **Vercel** (e `.env` local): `VITE_VAPID_PUBLICA=<a pública>`
+2. **Supabase > Edge Functions > Secrets**:
+   `VAPID_PUBLICA`, `VAPID_PRIVADA` e `VAPID_CONTATO` (um `mailto:` seu).
+   A privada só vive aqui — nunca no front, nunca no banco.
+3. **Ligue o cron**, que nasce desligado justamente porque sem as chaves a
+   função devolve 500 toda segunda:
+
+```sql
+select cron.alter_job((select jobid from cron.job where jobname = 'resumo-semanal'), active := true);
+```
+
+Para ver o texto que sairia, sem mandar nada a ninguém:
+
+```bash
+curl -X POST "$URL/functions/v1/resumo-semanal" \
+  -H "Authorization: Bearer $ANON" -H 'Content-Type: application/json' \
+  -d '{"seco": true, "ate": "2026-09-14"}'
+```
+
+No iPhone a notificação só funciona com o app **adicionado à Tela de
+Início** — é limitação do Safari, e o painel em Perfil > Resumo de segunda
+diz isso em vez de falhar calado.
 
 ## Decisões de visualização
 

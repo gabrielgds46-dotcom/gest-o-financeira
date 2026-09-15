@@ -18,10 +18,11 @@ import { PainelRecorrencias } from '../components/PainelRecorrencias'
 import { PainelOrcamentos } from '../components/PainelOrcamentos'
 import { PainelCategorias } from '../components/PainelCategorias'
 import { Vazio } from '../components/Vazio'
+import { PainelNotificacoes } from '../components/PainelNotificacoes'
 import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 import { Icone } from '../components/Icone'
 
-type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | 'recorrencias' | 'orcamentos' | 'categorias' | null
+type Folhas = 'dados' | 'casa' | 'rateio' | 'convite' | 'novoCartao' | 'editarCartao' | 'recorrencias' | 'orcamentos' | 'categorias' | 'notificacoes' | null
 
 export function Perfil() {
   const { user, sair } = useAuth()
@@ -146,6 +147,15 @@ export function Perfil() {
             </span>
             <Icone nome="seta" className="text-ink-3" />
           </button>
+          <div className="my-1 h-px bg-s2" />
+          <button type="button" onClick={() => setFolha('notificacoes')} className="flex w-full items-center gap-3 py-1 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-s2 text-ink-2"><Icone nome="sino" /></span>
+            <span className="flex-1">
+              <span className="block font-semibold">Resumo de segunda</span>
+              <span className="block text-xs text-ink-3">Um aviso por semana, se você quiser</span>
+            </span>
+            <Icone nome="seta" className="text-ink-3" />
+          </button>
         </Cartao>
         </div>
 
@@ -184,6 +194,10 @@ export function Perfil() {
       </Folha>
 
       <Desfazer pedido={pedido} onFim={() => setPedido(null)} />
+
+      <Folha aberta={folha === 'notificacoes'} titulo="Resumo de segunda" onFechar={fechar}>
+        <PainelNotificacoes userId={user.id} />
+      </Folha>
 
       <Folha aberta={folha === 'novoCartao'} titulo="Novo cartão" onFechar={fechar}>
         <FormCartao onSalvar={salvarCartao} />

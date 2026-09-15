@@ -42,6 +42,7 @@ export const PASSOS_POR_TELA: Record<string, PassoTour[]> = {
     },
   ],
   '/lancar': [
+    { alvo: '[data-tour="frase"]', titulo: 'Escreva a frase inteira', texto: 'O jeito mais rápido: "mercado 187,50 no débito". O app mostra em fichas o que entendeu e preenche o formulário. Ele nunca salva sozinho — você confere antes.' },
     { alvo: '[data-tour="valor"]', titulo: 'Comece pelo valor', texto: 'O teclado começa pelos centavos: digite 1 2 3 4 e vira R$ 12,34. Sem vírgula, sem ponto.' },
     { alvo: '[data-tour="categoria"]', titulo: 'Categoria em um toque', texto: 'Grade, nunca lista suspensa. Se você escrever "iFood" na descrição, o app já sugere Alimentação. O último quadrado cria uma categoria nova.' },
     { alvo: '[data-tour="previa"]', titulo: 'A prévia antes de salvar', texto: 'No crédito o app mostra em que faturas a compra vai cair, contando o fechamento do cartão. Confira aqui antes de lançar.' },

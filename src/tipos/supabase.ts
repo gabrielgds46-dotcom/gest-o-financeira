@@ -110,6 +110,39 @@ export type Database = {
           },
         ]
       }
+      push_inscricoes: {
+        Row: {
+          id: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          aparelho: string | null
+          criada_em: string
+          falhas: number
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          aparelho?: string | null
+          criada_em?: string
+          falhas?: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          aparelho?: string | null
+          criada_em?: string
+          falhas?: number
+        }
+        Relationships: []
+      }
       categorias: {
         Row: {
           ativo: boolean
@@ -888,6 +921,24 @@ export type Database = {
       }
       fn_meu_household: { Args: never; Returns: string }
       fn_valida_visao: { Args: { p_visao: string }; Returns: string | null }
+      resumo_semanal: {
+        Args: { p_visao: string; p_ate?: string | null }
+        Returns: {
+          ate: string
+          gasto: number
+          gasto_anterior: number
+          /** null quando não houve semana anterior: sem base, não há comparação. */
+          variacao: number | null
+          top_nome: string | null
+          top_valor: number | null
+          top_cor: string | null
+          top_icone: string | null
+          maior_nome: string | null
+          maior_valor: number | null
+          vence_valor: number
+          vence_qtd: number
+        }[]
+      }
       fn_sou_membro: { Args: { p_household: string }; Returns: boolean }
       garantir_salario: { Args: { p_competencia: string }; Returns: undefined }
       gasto_por_categoria: {

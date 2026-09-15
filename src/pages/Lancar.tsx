@@ -21,6 +21,8 @@ import { Botao } from '../components/Botao'
 import { Folha } from '../components/Folha'
 import { Icone } from '../components/Icone'
 import { FormCategoria } from '../components/FormCategoria'
+import { BarraFrase } from '../components/BarraFrase'
+import type { FraseLida } from '../dominio/frase'
 
 export function Lancar() {
   const { user } = useAuth()
@@ -148,6 +150,21 @@ export function Lancar() {
     }
   }
 
+  /**
+   * A frase preenche, nunca salva. E só sobrescreve o que ela entendeu —
+   * o que a pessoa já tinha escolhido à mão fica de pé.
+   */
+  function preencherPelaFrase(lida: FraseLida) {
+    if (lida.valorCentavos !== null) setValor(lida.valorCentavos)
+    if (lida.descricao) { setDescricao(lida.descricao); setCategoriaManual(false) }
+    if (lida.metodo) setMetodo(lida.metodo)
+    if (lida.parcelas !== null) setParcelasTotal(lida.parcelas)
+    if (lida.data) setData(lida.data)
+    if (lida.cartaoId) setCartaoId(lida.cartaoId)
+    if (lida.escopo && parceiro) setEscopo(lida.escopo)
+    setErro(null); setSucesso(null)
+  }
+
   async function repetirUltimo() {
     if (!user) return
     try {
@@ -172,8 +189,15 @@ export function Lancar() {
       }
     >
       <div className="space-y-5">
+        <div data-tour="frase">
+          <BarraFrase
+            cartoes={cartoesDoPagador.flatMap((c) => (c.id && c.apelido ? [{ id: c.id, apelido: c.apelido }] : []))}
+            onPreencher={preencherPelaFrase}
+          />
+        </div>
+
         <div data-tour="valor">
-          <CampoMoeda rotulo="Valor" valor={valor} onChange={setValor} autoFocus grande />
+          <CampoMoeda rotulo="Valor" valor={valor} onChange={setValor} grande />
         </div>
 
         <Alternador<Escopo>

@@ -22,6 +22,8 @@ const CAMINHOS: Record<string, string> = {
   cadeado: 'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4',
   repetir: 'M17 2l4 4-4 4 M3 11V8a2 2 0 0 1 2-2h16 M7 22l-4-4 4-4 M21 13v3a2 2 0 0 1-2 2H3',
   mais: 'M12 5v14 M5 12h14',
+  sino: 'M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9 M13.7 21a2 2 0 0 1-3.4 0',
+  frase: 'M4 5h16v11H8l-4 4z M8 9h8 M8 12.5h5',
   busca: 'M21 21l-4.3-4.3 M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z',
   tour: 'M5 3l14 9-14 9z',
   ajuda: 'M12 17h.01 M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3',

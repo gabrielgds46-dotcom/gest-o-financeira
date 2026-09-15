@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { usePerfil } from '../contexts/PerfilContext'
 import { useVisao, type Visao } from '../contexts/VisaoContext'
@@ -24,6 +24,7 @@ import { Icone, type NomeIcone } from '../components/Icone'
 import { Hero } from '../components/Hero'
 import { Vazio } from '../components/Vazio'
 import { FolhaLancamento } from '../components/FolhaLancamento'
+import { FolhaSemana } from '../components/FolhaSemana'
 import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 
 const LIMITE_COMPROMETIMENTO = 0.3
@@ -58,6 +59,9 @@ export function Inicio() {
   const [detalheId, setDetalheId] = useState<string | null>(null)
   const [pedido, setPedido] = useState<PedidoDesfazer | null>(null)
   const [verTudo, setVerTudo] = useState(false)
+  // ?semana=1 é para onde a notificação de segunda aponta.
+  const [params, setParams] = useSearchParams()
+  const folhaSemana = params.get('semana') === '1'
 
   const hoje = hojeLocal()
   const householdId = perfil?.household_id ?? null
@@ -183,6 +187,18 @@ export function Inicio() {
         )}
 
         <div data-tour="hero"><Hero resumo={resumo} carregando={carregando} /></div>
+
+        <button
+          type="button"
+          onClick={() => setParams({ semana: '1' })}
+          className="flex min-h-[52px] w-full items-center gap-3 rounded-2xl border border-line bg-s1 px-4 text-left active:bg-s2"
+        >
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-s2 text-ink-2">
+            <Icone nome="calendario" tamanho={16} />
+          </span>
+          <span className="flex-1 text-sm font-semibold">Resumo da semana</span>
+          <Icone nome="seta" tamanho={16} className="shrink-0 text-ink-3" />
+        </button>
 
         {resumo && resumo.comprometimento > LIMITE_COMPROMETIMENTO && (
           <Aviso>
@@ -338,6 +354,8 @@ export function Inicio() {
         onMudou={carregar}
         onDesfazer={setPedido}
       />
+
+      <FolhaSemana aberta={folhaSemana} visao={visao} onFechar={() => setParams({})} />
 
       <Desfazer pedido={pedido} onFim={() => setPedido(null)} />
 

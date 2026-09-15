@@ -39,6 +39,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Os handlers de push vivem num arquivo à parte (public/push-sw.js).
+        importScripts: ['push-sw.js'],
         navigateFallback: '/index.html',
         // Nunca cachear chamadas ao Supabase: dado financeiro tem que ser fresco.
         navigateFallbackDenylist: [/^\/api\//],
