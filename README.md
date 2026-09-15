@@ -225,9 +225,12 @@ npx web-push generate-vapid-keys
 Depois, três lugares:
 
 1. **Vercel** (e `.env` local): `VITE_VAPID_PUBLICA=<a pública>`
-2. **Supabase > Edge Functions > Secrets**:
-   `VAPID_PUBLICA`, `VAPID_PRIVADA` e `VAPID_CONTATO` (um `mailto:` seu).
-   A privada só vive aqui — nunca no front, nunca no banco.
+2. **Supabase > Edge Functions > Secrets**: `VAPID_PUBLICA`, `VAPID_PRIVADA` e
+   `VAPID_CONTATO`. A privada só vive aqui — nunca no front, nunca no banco.
+   O contato tem de ser um `mailto:` de verdade e é obrigatório: é por ele que
+   o serviço de push avisa se algo estiver errado do lado deles, e alguns
+   recusam a entrega sem um endereço válido. A função devolve 500 com o motivo
+   se faltar qualquer um dos três.
 3. **Ligue o cron**, que nasce desligado justamente porque sem as chaves a
    função devolve 500 toda segunda:
 

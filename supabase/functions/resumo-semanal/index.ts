@@ -27,10 +27,16 @@ Deno.serve(async (req: Request) => {
   const chave = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const vapidPub = Deno.env.get('VAPID_PUBLICA')
   const vapidPriv = Deno.env.get('VAPID_PRIVADA')
-  const contato = Deno.env.get('VAPID_CONTATO') ?? 'mailto:financas@exemplo.com'
+  const contato = Deno.env.get('VAPID_CONTATO')
 
   if (!url || !chave) return json({ erro: 'SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ausentes' }, 500)
   if (!vapidPub || !vapidPriv) return json({ erro: 'VAPID_PUBLICA/VAPID_PRIVADA ausentes' }, 500)
+  // Sem padrão inventado: é por este endereço que o serviço de push avisa
+  // se algo estiver errado do lado deles. Um mailto: de mentira faz esse
+  // aviso cair no vazio, e alguns serviços recusam a entrega.
+  if (!contato?.startsWith('mailto:')) {
+    return json({ erro: 'VAPID_CONTATO ausente ou sem mailto: (ex.: mailto:voce@exemplo.com)' }, 500)
+  }
 
   webpush.setVapidDetails(contato, vapidPub, vapidPriv)
 
