@@ -107,7 +107,7 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
 
   return (
     <Folha aberta={!!lancamentoId} titulo={editando ? 'Editar lançamento' : 'Lançamento'} onFechar={onFechar}>
-      {carregando && !detalhe && <p className="py-6 text-center text-sm text-zinc-500">Carregando…</p>}
+      {carregando && !detalhe && <p className="py-6 text-center text-sm text-ink-3">Carregando…</p>}
       {erro && <div className="mb-4"><Aviso>{erro}</Aviso></div>}
 
       {detalhe && !editando && (
@@ -120,12 +120,12 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
             </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-lg font-semibold">{detalhe.descricao || detalhe.categoria}</p>
-              <p className="text-sm text-zinc-400">{detalhe.categoria}</p>
+              <p className="text-sm text-ink-2">{detalhe.categoria}</p>
             </div>
             <p className="shrink-0 text-lg font-bold tabular-nums">{formatarMoeda(detalhe.valor_total)}</p>
           </div>
 
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-xl bg-s1 px-4 py-3 text-sm">
             <Linha rotulo="Data" valor={formatarData(detalhe.data_compra)} />
             <Linha rotulo="Método" valor={detalhe.metodo === 'credito' ? (detalhe.cartao ?? 'Crédito') : 'Pix / Débito'} />
             <Linha rotulo="Escopo" valor={detalhe.escopo === 'pessoal' ? 'Pessoal' : 'Compartilhado'} />
@@ -137,25 +137,25 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
 
           {/* ---------- Parcelas ---------- */}
           <div>
-            <h3 className="mb-2 text-sm font-semibold text-zinc-300">
+            <h3 className="mb-2 text-sm font-semibold text-ink-2">
               {detalhe.parcelas.length > 1 ? `${detalhe.parcelas.length} parcelas` : 'Parcela'}
             </h3>
-            <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+            <ul className="divide-y divide-s2 rounded-xl border border-s2">
               {detalhe.parcelas.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-3 py-2">
-                  <span className="w-10 shrink-0 text-xs text-zinc-500 tabular-nums">
+                  <span className="w-10 shrink-0 text-xs text-ink-3 tabular-nums">
                     {detalhe.parcelas.length > 1 ? `${p.numero}/${detalhe.parcelas.length}` : '—'}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium tabular-nums">{formatarMoeda(p.valor)}</span>
-                    <span className="block text-xs text-zinc-500">
+                    <span className="block text-xs text-ink-3">
                       vence {formatarData(p.vencimento)}
                       {p.status === 'pago' && p.pago_em && ` · pago em ${formatarData(p.pago_em)}`}
                       {p.status === 'cancelado' && ' · cancelada'}
                     </span>
                   </span>
                   {p.status === 'cancelado' ? (
-                    <span className="flex h-11 w-11 items-center justify-center text-zinc-600"><Icone nome="bloqueado" tamanho={18} /></span>
+                    <span className="flex h-11 w-11 items-center justify-center text-ink-3"><Icone nome="bloqueado" tamanho={18} /></span>
                   ) : (
                     <button
                       type="button" disabled={ocupado || p.mes_fechado}
@@ -163,8 +163,8 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
                       aria-label={p.status === 'pago' ? `Desmarcar parcela ${p.numero} como paga` : `Marcar parcela ${p.numero} como paga`}
                       className={'flex h-11 w-11 shrink-0 items-center justify-center rounded-full border disabled:opacity-40 ' +
                         (p.status === 'pago'
-                          ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
-                          : 'border-zinc-700 text-zinc-500 active:bg-zinc-800')}
+                          ? 'border-acao bg-acao/20 text-acao'
+                          : 'border-s3 text-ink-3 active:bg-s2')}
                     >
                       <Icone nome="check" tamanho={18} />
                     </button>
@@ -190,12 +190,12 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
             <Botao
               variante="fantasma" ocupado={ocupado} disabled={!excluivel}
               onClick={() => void excluir()}
-              className={excluivel ? 'text-red-400' : ''}
+              className={excluivel ? 'text-perigo' : ''}
             >
               <Icone nome="lixeira" tamanho={18} className="mr-2" /> Excluir
             </Botao>
             {!excluivel && !mesFechado && !daRecorrencia && (
-              <p className="px-1 text-center text-xs text-zinc-500">
+              <p className="px-1 text-center text-xs text-ink-3">
                 Tem parcela paga: o histórico fica. Use “Cancelar o que falta”.
               </p>
             )}
@@ -218,8 +218,8 @@ export function FolhaLancamento({ lancamentoId, onFechar, onMudou, onDesfazer }:
 function Linha({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <>
-      <dt className="text-zinc-500">{rotulo}</dt>
-      <dd className="text-right font-medium text-zinc-200">{valor}</dd>
+      <dt className="text-ink-3">{rotulo}</dt>
+      <dd className="text-right font-medium text-ink">{valor}</dd>
     </>
   )
 }
@@ -349,7 +349,7 @@ function FormEdicao({ detalhe, parcelas, onCancelar, onSalvo }: {
         erro={valorTravado && valor !== detalhe.valor_total ? 'Valor travado por parcela cancelada.' : undefined} />
 
       <div>
-        <span className="mb-1.5 block text-sm font-medium text-zinc-300">Categoria</span>
+        <span className="mb-1.5 block text-sm font-medium text-ink-2">Categoria</span>
         <GridCategorias categorias={categorias} valor={categoriaId} onChange={setCategoriaId} />
       </div>
 
@@ -372,12 +372,12 @@ function FormEdicao({ detalhe, parcelas, onCancelar, onSalvo }: {
           />
           {metodo === 'credito' && cartoes.length > 0 && (
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-zinc-300">Cartão</span>
+              <span className="mb-1.5 block text-sm font-medium text-ink-2">Cartão</span>
               <div className="flex flex-wrap gap-2">
                 {cartoes.map((c) => (
                   <button key={c.id} type="button" onClick={() => setCartaoId(c.id)}
                     className={'h-11 rounded-full border px-4 text-sm font-medium ' +
-                      (c.id === cartaoId ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300' : 'border-zinc-700 text-zinc-300')}>
+                      (c.id === cartaoId ? 'border-acao bg-acao/15 text-acao' : 'border-s3 text-ink-2')}>
                     {c.apelido}
                   </button>
                 ))}
@@ -388,19 +388,19 @@ function FormEdicao({ detalhe, parcelas, onCancelar, onSalvo }: {
             <Campo id="editData" rotulo="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} />
             {metodo === 'credito' && (
               <div>
-                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Parcelas</span>
-                <div className="flex h-12 items-center rounded-xl border border-zinc-800 bg-zinc-900">
-                  <button type="button" aria-label="Menos parcelas" onClick={() => setQuantas((n) => Math.max(1, n - 1))} className="h-full w-12 text-xl text-zinc-300 active:bg-zinc-800">−</button>
+                <span className="mb-1.5 block text-sm font-medium text-ink-2">Parcelas</span>
+                <div className="flex h-12 items-center rounded-xl border border-s2 bg-s1">
+                  <button type="button" aria-label="Menos parcelas" onClick={() => setQuantas((n) => Math.max(1, n - 1))} className="h-full w-12 text-xl text-ink-2 active:bg-s2">−</button>
                   <input type="text" inputMode="numeric" aria-label="Número de parcelas" value={quantas}
                     onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, '')); setQuantas(Math.min(PARCELAS_MAX, Math.max(1, n || 1))) }}
                     className="h-full w-full bg-transparent text-center text-base font-semibold outline-none" />
-                  <button type="button" aria-label="Mais parcelas" onClick={() => setQuantas((n) => Math.min(PARCELAS_MAX, n + 1))} className="h-full w-12 text-xl text-zinc-300 active:bg-zinc-800">+</button>
+                  <button type="button" aria-label="Mais parcelas" onClick={() => setQuantas((n) => Math.min(PARCELAS_MAX, n + 1))} className="h-full w-12 text-xl text-ink-2 active:bg-s2">+</button>
                 </div>
               </div>
             )}
           </div>
           {previa.parcelas.length > 0 && (
-            <p className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm font-medium text-zinc-200" aria-live="polite">
+            <p className="rounded-xl bg-s1 px-4 py-3 text-center text-sm font-medium text-ink" aria-live="polite">
               {descreverParcelamento(previa.parcelas)}
             </p>
           )}
@@ -408,7 +408,7 @@ function FormEdicao({ detalhe, parcelas, onCancelar, onSalvo }: {
         </>
       ) : (
         redistribuicao?.plano && (
-          <p className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm font-medium text-zinc-200" aria-live="polite">
+          <p className="rounded-xl bg-s1 px-4 py-3 text-center text-sm font-medium text-ink" aria-live="polite">
             {redistribuicao.plano.ajustes.length === 0
               ? 'Nada a redistribuir: tudo já foi pago.'
               : `${formatarMoeda(redistribuicao.plano.restante)} divididos em ${redistribuicao.plano.ajustes.length}x`}

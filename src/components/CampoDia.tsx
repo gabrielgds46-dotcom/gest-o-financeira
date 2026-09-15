@@ -13,7 +13,7 @@ export function CampoDia({ rotulo, valor, onChange, ajuda, erro }: Props) {
   const id = useId()
   return (
     <label htmlFor={id} className="block">
-      <span className="mb-1.5 block text-sm font-medium text-zinc-300">{rotulo}</span>
+      <span className="mb-1.5 block text-sm font-medium text-ink-2">{rotulo}</span>
       <input
         id={id}
         type="text"
@@ -28,13 +28,13 @@ export function CampoDia({ rotulo, valor, onChange, ajuda, erro }: Props) {
           onChange(Math.min(31, Math.max(1, Number(d))))
         }}
         className={
-          'h-12 w-full rounded-xl border bg-zinc-900 px-4 text-base text-zinc-100 outline-none ' +
-          'placeholder:text-zinc-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 ' +
-          (erro ? 'border-red-500' : 'border-zinc-800')
+          'h-12 w-full rounded-xl border bg-s1 px-4 text-base text-ink outline-none ' +
+          'placeholder:text-ink-3 focus:border-acao focus:ring-2 focus:ring-acao/30 ' +
+          (erro ? 'border-perigo' : 'border-s2')
         }
       />
-      {ajuda && !erro && <span className="mt-1 block text-xs text-zinc-500">{ajuda}</span>}
-      {erro && <span className="mt-1 block text-sm text-red-400">{erro}</span>}
+      {ajuda && !erro && <span className="mt-1 block text-xs text-ink-3">{ajuda}</span>}
+      {erro && <span className="mt-1 block text-sm text-perigo">{erro}</span>}
     </label>
   )
 }

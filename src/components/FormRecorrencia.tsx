@@ -92,7 +92,7 @@ export function FormRecorrencia({ inicial, temParceiro, onSalvar, onDesativar, a
             <div className="flex flex-wrap gap-2">
               {cartoes.map((c) => (
                 <button key={c.id} type="button" onClick={() => setCartaoId(c.id)}
-                  className={'h-11 rounded-full border px-4 text-sm font-medium ' + (c.id === cartaoId ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300' : 'border-zinc-700 text-zinc-300')}>
+                  className={'h-11 rounded-full border px-4 text-sm font-medium ' + (c.id === cartaoId ? 'border-acao bg-acao/15 text-acao' : 'border-s3 text-ink-2')}>
                   {c.apelido}
                 </button>
               ))}
@@ -100,15 +100,15 @@ export function FormRecorrencia({ inicial, temParceiro, onSalvar, onDesativar, a
           )}
           {metodo === 'credito' && cartoes.length === 0 && <Aviso tipo="info">Cadastre um cartão antes de usar o crédito.</Aviso>}
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-zinc-300">Categoria</span>
+            <span className="mb-1.5 block text-sm font-medium text-ink-2">Categoria</span>
             <GridCategorias categorias={categorias} valor={categoriaId} onChange={setCategoriaId} />
           </div>
         </>
       )}
 
-      <label className="flex items-center gap-3 rounded-xl bg-zinc-900 px-4 py-3">
-        <input type="checkbox" checked={temFim} onChange={(e) => setTemFim(e.target.checked)} className="h-5 w-5 accent-emerald-500" />
-        <span className="text-sm text-zinc-300">Tem data para acabar</span>
+      <label className="flex items-center gap-3 rounded-xl bg-s1 px-4 py-3">
+        <input type="checkbox" checked={temFim} onChange={(e) => setTemFim(e.target.checked)} className="h-5 w-5 accent-acao" />
+        <span className="text-sm text-ink-2">Tem data para acabar</span>
       </label>
       {temFim && <Campo id="fimRec" rotulo="Último mês" type="date" value={fim} onChange={(e) => setFim(e.target.value)} />}
 

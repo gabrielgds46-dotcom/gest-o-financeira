@@ -73,10 +73,18 @@ export function Perfil() {
         <Cartao>
           <Cabecalho titulo={casa?.nome ?? 'Nossa casa'} subtitulo={parceiro ? 'Casal completo' : 'Aguardando seu par'} onEditar={() => setFolha('casa')} />
           <ul className="mt-3 space-y-2">
-            {membros.map((m) => (
-              <li key={m.user_id} className="flex items-center justify-between rounded-xl bg-zinc-950 px-3 py-2.5">
-                <span className="font-medium">{m.nome}{m.user_id === user.id && <span className="text-zinc-500"> (você)</span>}</span>
-                <span className="text-sm text-zinc-400">{formatarMoeda(m.salario_base)} · <b className="text-zinc-200">{formatarPct(m.percentual_rateio)}</b></span>
+            {membros.map((m, i) => (
+              <li key={m.user_id} className="flex items-center gap-2.5 rounded-xl bg-bg px-3 py-2.5">
+                {/* A mesma cor que identifica a pessoa no Início. Azul e âmbar
+                    porque verde/vermelho some para quem tem daltonismo. */}
+                <span className={'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ' +
+                  (i === 0 ? 'bg-p1/20 text-p1' : 'bg-p2/20 text-p2')}>
+                  {m.nome.trim().charAt(0).toUpperCase()}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-medium">
+                  {m.nome}{m.user_id === user.id && <span className="text-ink-3"> (você)</span>}
+                </span>
+                <span className="shrink-0 text-sm text-ink-2">{formatarMoeda(m.salario_base)} · <b className="text-ink">{formatarPct(m.percentual_rateio)}</b></span>
               </li>
             ))}
           </ul>
@@ -101,30 +109,30 @@ export function Perfil() {
         {/* ---------- Recorrências e orçamentos ---------- */}
         <Cartao>
           <button type="button" onClick={() => setFolha('recorrencias')} className="flex w-full items-center gap-3 py-1 text-left">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="repetir" /></span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-s2 text-ink-2"><Icone nome="repetir" /></span>
             <span className="flex-1">
               <span className="block font-semibold">Recorrências</span>
-              <span className="block text-xs text-zinc-500">Aluguel, luz, faculdade, streaming</span>
+              <span className="block text-xs text-ink-3">Aluguel, luz, faculdade, streaming</span>
             </span>
-            <Icone nome="seta" className="text-zinc-600" />
+            <Icone nome="seta" className="text-ink-3" />
           </button>
-          <div className="my-1 h-px bg-zinc-800" />
+          <div className="my-1 h-px bg-s2" />
           <button type="button" onClick={() => setFolha('orcamentos')} className="flex w-full items-center gap-3 py-1 text-left">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="analise" /></span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-s2 text-ink-2"><Icone nome="analise" /></span>
             <span className="flex-1">
               <span className="block font-semibold">Orçamentos</span>
-              <span className="block text-xs text-zinc-500">Teto mensal por categoria</span>
+              <span className="block text-xs text-ink-3">Teto mensal por categoria</span>
             </span>
-            <Icone nome="seta" className="text-zinc-600" />
+            <Icone nome="seta" className="text-ink-3" />
           </button>
-          <div className="my-1 h-px bg-zinc-800" />
+          <div className="my-1 h-px bg-s2" />
           <button type="button" onClick={() => setFolha('categorias')} className="flex w-full items-center gap-3 py-1 text-left">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300"><Icone nome="presente" /></span>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-s2 text-ink-2"><Icone nome="presente" /></span>
             <span className="flex-1">
               <span className="block font-semibold">Categorias</span>
-              <span className="block text-xs text-zinc-500">As oito de fábrica mais as que vocês criarem</span>
+              <span className="block text-xs text-ink-3">As oito de fábrica mais as que vocês criarem</span>
             </span>
-            <Icone nome="seta" className="text-zinc-600" />
+            <Icone nome="seta" className="text-ink-3" />
           </button>
         </Cartao>
 
@@ -214,7 +222,7 @@ function FormDados({ perfil, onSalvo }: { perfil: { id: string; nome: string; sa
         <CampoDia rotulo="Recebe dia" valor={rec} onChange={setRec} />
         <CampoDia rotulo="Contas vencem dia" valor={contas} onChange={setContas} />
       </div>
-      <p className="text-xs text-zinc-500">Mudar o salário aqui altera a base dos próximos meses. Meses já lançados não mudam.</p>
+      <p className="text-xs text-ink-3">Mudar o salário aqui altera a base dos próximos meses. Meses já lançados não mudam.</p>
       {erro && <Aviso>{erro}</Aviso>}
       <Botao onClick={salvar} ocupado={ocupado}>Salvar</Botao>
     </div>
@@ -253,18 +261,18 @@ function FormRateio({ eu, parceiro, onSalvo }: { eu: { nome: string; salario_bas
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-zinc-400">Quanto cada um paga dos gastos compartilhados. A soma é sempre 100%.</p>
+      <p className="text-sm text-ink-2">Quanto cada um paga dos gastos compartilhados. A soma é sempre 100%.</p>
       <div className="grid grid-cols-2 gap-3 text-center">
-        <div className="rounded-xl bg-zinc-900 p-3"><p className="text-xs text-zinc-500">{eu.nome}</p><p className="text-3xl font-bold text-emerald-400">{meu}%</p></div>
-        <div className="rounded-xl bg-zinc-900 p-3"><p className="text-xs text-zinc-500">{parceiro.nome}</p><p className="text-3xl font-bold">{100 - meu}%</p></div>
+        <div className="rounded-xl bg-s1 p-3"><p className="text-xs text-ink-3">{eu.nome}</p><p className="text-3xl font-bold text-acao">{meu}%</p></div>
+        <div className="rounded-xl bg-s1 p-3"><p className="text-xs text-ink-3">{parceiro.nome}</p><p className="text-3xl font-bold">{100 - meu}%</p></div>
       </div>
-      <input type="range" min={0} max={100} step={1} value={meu} onChange={(e) => setMeu(Number(e.target.value))} className="w-full accent-emerald-500" aria-label={`Percentual de ${eu.nome}`} />
+      <input type="range" min={0} max={100} step={1} value={meu} onChange={(e) => setMeu(Number(e.target.value))} className="w-full accent-acao" aria-label={`Percentual de ${eu.nome}`} />
       <div className="grid grid-cols-2 gap-3">
         <Botao variante="secundario" onClick={() => setMeu(50)}>Meio a meio</Botao>
         <Botao variante="secundario" onClick={() => setMeu(proporcional)} disabled={rendaTotal === 0}>Proporcional à renda</Botao>
       </div>
       {rendaTotal > 0 && (
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-ink-3">
           Proporcional: {eu.nome} ganha {formatarMoeda(eu.salario_base)} de {formatarMoeda(rendaTotal)}, ou seja {proporcional}%.
         </p>
       )}
@@ -292,11 +300,11 @@ function PainelConvite({ householdId, codigoAtual, expiraEm, onGerado }: { house
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">O código vale por 7 dias e só pode ser usado uma vez. Seu par digita em "Tenho um convite" ao entrar no app.</p>
+      <p className="text-sm text-ink-2">O código vale por 7 dias e só pode ser usado uma vez. Seu par digita em "Tenho um convite" ao entrar no app.</p>
       {codigo ? (
         <>
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 py-6 text-center">
-            <p className="font-mono text-4xl font-bold tracking-[0.3em] text-emerald-300">{codigo}</p>
+          <div className="rounded-2xl border border-acao/30 bg-acao/10 py-6 text-center">
+            <p className="font-mono text-4xl font-bold tracking-[0.3em] text-acao">{codigo}</p>
           </div>
           <Botao onClick={compartilhar}><Icone nome="compartilhar" className="mr-2" /> Compartilhar</Botao>
           {aviso && <Aviso tipo="info">{aviso}</Aviso>}
@@ -317,10 +325,10 @@ function Cabecalho({ titulo, subtitulo, onEditar }: { titulo: string; subtitulo:
     <div className="flex items-center justify-between">
       <div className="min-w-0">
         <h2 className="truncate font-semibold">{titulo}</h2>
-        <p className="truncate text-xs text-zinc-500">{subtitulo}</p>
+        <p className="truncate text-xs text-ink-3">{subtitulo}</p>
       </div>
       {onEditar && (
-        <button type="button" onClick={onEditar} aria-label={`Editar ${titulo}`} className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 active:bg-zinc-800">
+        <button type="button" onClick={onEditar} aria-label={`Editar ${titulo}`} className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-ink-2 active:bg-s2">
           <Icone nome="editar" tamanho={18} />
         </button>
       )}
@@ -330,8 +338,8 @@ function Cabecalho({ titulo, subtitulo, onEditar }: { titulo: string; subtitulo:
 
 function Dado({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-xl bg-zinc-950 px-2 py-2">
-      <dt className="text-[11px] text-zinc-500">{rotulo}</dt>
+    <div className="rounded-xl bg-bg px-2 py-2">
+      <dt className="text-[11px] text-ink-3">{rotulo}</dt>
       <dd className="truncate text-sm font-semibold tabular-nums">{valor}</dd>
     </div>
   )

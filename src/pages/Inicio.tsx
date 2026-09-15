@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { usePerfil } from '../contexts/PerfilContext'
@@ -10,22 +10,36 @@ import {
 } from '../dados/lancamentos'
 import { gerarPendentes } from '../dados/recorrencias'
 import { formatarMoeda } from '../lib/moeda'
-import { formatarData, formatarCompetenciaLonga, hojeLocal, primeiroDiaDoMes, compararDatas } from '../lib/datas'
+import { hojeLocal, primeiroDiaDoMes, compararDatas, partes, diasNoMes } from '../lib/datas'
 import { traduzErro } from '../lib/erros'
 import { useTempoReal } from '../lib/tempoReal'
-import { Tela, Cartao, Aviso } from '../components/Tela'
+import { Tela, Aviso } from '../components/Tela'
 import { SeletorMes } from '../components/SeletorMes'
 import { Alternador } from '../components/Alternador'
-import { Barra } from '../components/Barra'
 import { Botao } from '../components/Botao'
 import { Folha } from '../components/Folha'
 import { CampoMoeda } from '../components/CampoMoeda'
 import { Campo } from '../components/Campo'
 import { Icone, type NomeIcone } from '../components/Icone'
+import { Hero } from '../components/Hero'
 import { FolhaLancamento } from '../components/FolhaLancamento'
 import { Desfazer, type PedidoDesfazer } from '../components/Desfazer'
 
 const LIMITE_COMPROMETIMENTO = 0.3
+
+/** Uma linha da lista, vinda do "a vencer" ou do mês inteiro. */
+type Linha = {
+  parcelaId: string
+  lancamentoId: string
+  titulo: string
+  subtitulo: string
+  valor: number
+  vencimento: string
+  cor: string
+  icone: string
+  pago: boolean
+  diasRestantes: number | null
+}
 
 export function Inicio() {
   const { user } = useAuth()
@@ -35,14 +49,15 @@ export function Inicio() {
   const [resumo, setResumo] = useState<ResumoMes | null>(null)
   const [categorias, setCategorias] = useState<GastoCategoria[]>([])
   const [vencer, setVencer] = useState<ParcelaAVencer[]>([])
+  const [lista, setLista] = useState<LancamentoDoMes[]>([])
   const [saldos, setSaldos] = useState<SaldoCasal[]>([])
   const [fechado, setFechado] = useState(false)
-  const [lista, setLista] = useState<LancamentoDoMes[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [folhaAcerto, setFolhaAcerto] = useState(false)
   const [detalheId, setDetalheId] = useState<string | null>(null)
   const [pedido, setPedido] = useState<PedidoDesfazer | null>(null)
+  const [verTudo, setVerTudo] = useState(false)
 
   const hoje = hojeLocal()
   const householdId = perfil?.household_id ?? null
@@ -51,9 +66,6 @@ export function Inicio() {
     if (!user || !perfil) return
     setErro(null)
     try {
-      // Fallback do primeiro acesso do mês: gera salário e recorrências que o
-      // cron ainda não gerou. Mesma RPC idempotente da Edge Function, então
-      // rodar os dois nunca duplica.
       if (compararDatas(competencia, primeiroDiaDoMes(perfil.created_at.slice(0, 10))) >= 0) {
         await garantirSalario(competencia)
         await gerarPendentes(competencia)
@@ -61,7 +73,7 @@ export function Inicio() {
       const [r, c, v, f, s, l] = await Promise.all([
         resumoMes(escopo, competencia),
         gastoPorCategoria(escopo, competencia),
-        aVencer(escopo, 7),
+        aVencer(escopo, null),   // o mês todo, não uma janela de 7 dias
         mesEstaFechado(escopo, competencia, user.id, householdId),
         escopo === 'compartilhado' && householdId ? saldoCasal(householdId) : Promise.resolve([]),
         lancamentosDoMes(escopo, competencia),
@@ -75,19 +87,17 @@ export function Inicio() {
   }, [user, perfil, competencia, escopo, householdId])
 
   useEffect(() => { void carregar() }, [carregar])
-
-  // Sincronia com o outro aparelho: o que o par lançar aparece aqui sozinho.
   useTempoReal(['lancamentos', 'parcelas', 'receitas', 'acertos', 'meses_fechados', 'orcamentos'], carregar)
 
   // Marcar pago é um toque só, e o toque errado é fácil. Em vez de confirmar
   // antes, o app deixa voltar atrás depois.
-  async function pagar(p: ParcelaAVencer) {
+  async function pagar(parcelaId: string, titulo: string) {
     try {
-      await marcarParcelaPaga(p.parcela_id, hoje)
+      await marcarParcelaPaga(parcelaId, hoje)
       await carregar()
       setPedido({
-        texto: `${p.descricao || p.categoria_nome} marcado como pago.`,
-        aoDesfazer: async () => { await desmarcarParcelaPaga(p.parcela_id); await carregar() },
+        texto: `${titulo} marcado como pago.`,
+        aoDesfazer: async () => { await desmarcarParcelaPaga(parcelaId); await carregar() },
       })
     } catch (e) { setErro(traduzErro((e as Error).message)) }
   }
@@ -101,19 +111,46 @@ export function Inicio() {
     } catch (e) { setErro(traduzErro((e as Error).message)) }
   }
 
+  const linhas = useMemo<Linha[]>(() => (
+    verTudo
+      ? lista.map((l) => ({
+          parcelaId: l.parcela_id, lancamentoId: l.lancamento_id,
+          titulo: l.descricao || l.categoria_nome,
+          subtitulo: [
+            l.parcelas_total > 1 ? `${l.numero}/${l.parcelas_total}` : '',
+            l.cartao_apelido ?? (l.metodo === 'a_vista' ? 'Pix / Débito' : ''),
+          ].filter(Boolean).join(' · '),
+          valor: l.valor, vencimento: l.vencimento, cor: l.categoria_cor, icone: l.categoria_icone,
+          pago: l.status === 'pago', diasRestantes: null,
+        }))
+      : vencer.map((p) => ({
+          parcelaId: p.parcela_id, lancamentoId: p.lancamento_id,
+          titulo: p.descricao || p.categoria_nome,
+          subtitulo: [
+            p.parcelas_total > 1 ? `${p.numero}/${p.parcelas_total}` : '',
+            p.cartao_apelido ?? (p.metodo === 'a_vista' ? 'Pix / Débito' : ''),
+          ].filter(Boolean).join(' · '),
+          valor: p.valor, vencimento: p.vencimento, cor: p.categoria_cor, icone: p.categoria_icone,
+          pago: false, diasRestantes: p.dias_restantes,
+        }))
+  ), [verTudo, lista, vencer])
+
   const podeFechar = compararDatas(competencia, primeiroDiaDoMes(hoje)) < 0
   const comTeto = categorias.filter((c) => c.teto !== null || c.valor > 0)
   const nomePor = (id: string) => membros.find((m) => m.user_id === id)?.nome.split(' ')[0] ?? '?'
-
-  // Saldo entre o casal: quem tem saldo negativo deve para quem tem positivo.
   const devedor = saldos.find((s) => s.saldo < 0)
   const credor = saldos.find((s) => s.saldo > 0)
+
+  // "dia 11 de 30": quanto de mês ainda falta. Só no mês corrente — nos outros
+  // não quer dizer nada.
+  const progresso = ehMesAtual ? `dia ${partes(hoje).dia} de ${diasNoMes(partes(hoje).ano, partes(hoje).mes)}` : null
 
   return (
     <Tela
       titulo={casa?.nome ?? 'Início'}
+      subtitulo={progresso ?? undefined}
       acao={
-        <Link to="/lancar" aria-label="Lançar" className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-zinc-950 active:scale-95">
+        <Link to="/lancar" aria-label="Lançar" className="flex h-11 w-11 items-center justify-center rounded-full bg-acao text-bg active:scale-95">
           <Icone nome="mais" />
         </Link>
       }
@@ -121,30 +158,23 @@ export function Inicio() {
       <div className="space-y-4">
         <Alternador<Escopo>
           rotulo="Escopo"
-          opcoes={[{ valor: 'pessoal', rotulo: 'Pessoal' }, { valor: 'compartilhado', rotulo: 'Compartilhado' }]}
+          opcoes={[{ valor: 'pessoal', rotulo: 'Pessoal' }, { valor: 'compartilhado', rotulo: 'Casal' }]}
           valor={escopo}
           onChange={setEscopo}
           desabilitados={parceiro ? [] : ['compartilhado']}
         />
-        {!parceiro && <p className="text-xs text-zinc-500">O compartilhado ativa quando seu par entrar na casa.</p>}
+        {!parceiro && <p className="text-xs text-ink-3">O modo Casal ativa quando seu par entrar na casa.</p>}
 
         <SeletorMes />
 
         {erro && <Aviso>{erro}</Aviso>}
-
         {fechado && (
           <Aviso tipo="info">
             <span className="inline-flex items-center gap-2"><Icone nome="cadeado" tamanho={16} /> Mês fechado: somente leitura.</span>
           </Aviso>
         )}
 
-        {/* ---------- KPIs ---------- */}
-        <div className="grid grid-cols-2 gap-3">
-          <Kpi rotulo="Renda" valor={resumo?.renda ?? 0} carregando={carregando} />
-          <Kpi rotulo="Gasto" valor={resumo?.gasto ?? 0} carregando={carregando} negativo />
-          <Kpi rotulo="Sobra" valor={resumo?.sobra ?? 0} carregando={carregando} destaque />
-          <KpiTexto rotulo="Taxa de poupança" valor={formatarPct(resumo?.taxa_poupanca ?? 0)} sub={resumo ? `${formatarMoeda(resumo.reserva)} guardados` : ''} carregando={carregando} />
-        </div>
+        <Hero resumo={resumo} carregando={carregando} />
 
         {resumo && resumo.comprometimento > LIMITE_COMPROMETIMENTO && (
           <Aviso>
@@ -152,125 +182,122 @@ export function Inicio() {
           </Aviso>
         )}
 
-        {/* ---------- Saldo do casal ---------- */}
-        {escopo === 'compartilhado' && parceiro && (
-          <Cartao>
-            <h2 className="text-sm font-semibold text-zinc-300">Entre o casal</h2>
-            {devedor && credor ? (
-              <p className="mt-1 text-lg font-semibold">
-                {nomePor(devedor.user_id)} deve <span className="text-emerald-400">{formatarMoeda(-devedor.saldo)}</span> a {nomePor(credor.user_id)}
-              </p>
-            ) : (
-              <p className="mt-1 text-lg font-semibold text-zinc-300">Contas zeradas</p>
-            )}
-            {devedor && credor && (
-              <Botao variante="secundario" className="mt-3" onClick={() => setFolhaAcerto(true)}>Registrar acerto</Botao>
-            )}
-          </Cartao>
-        )}
-
-        {/* ---------- A vencer ---------- */}
-        <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">A vencer nos próximos 7 dias</h2>
-          {vencer.length === 0 ? (
-            <p className="mt-2 text-sm text-zinc-500">Nada pendente. {ehMesAtual ? '' : 'A lista sempre olha a partir de hoje.'}</p>
-          ) : (
-            <ul className="mt-2 divide-y divide-zinc-800">
-              {vencer.map((p) => (
-                <li key={p.parcela_id} className="flex items-center gap-3 py-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: p.categoria_cor + '26', color: p.categoria_cor }}>
-                    <Icone nome={p.categoria_icone as NomeIcone} tamanho={18} />
-                  </span>
-                  <button type="button" onClick={() => setDetalheId(p.lancamento_id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{p.descricao || p.categoria_nome}</span>
-                      <span className="block text-xs text-zinc-500">
-                        {formatarData(p.vencimento)}
-                        {p.parcelas_total > 1 && ` · ${p.numero}/${p.parcelas_total}`}
-                        {p.cartao_apelido && ` · ${p.cartao_apelido}`}
-                      </span>
-                    </span>
-                    <span className="text-right">
-                      <span className="block text-sm font-semibold tabular-nums">{formatarMoeda(p.valor)}</span>
-                      <BadgeDias dias={p.dias_restantes} />
-                    </span>
-                  </button>
-                  <button type="button" onClick={() => void pagar(p)} aria-label="Marcar como pago" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 text-emerald-400 active:bg-emerald-500/20">
-                    <Icone nome="check" tamanho={18} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Cartao>
-
-        {/* ---------- Lançamentos do mês ---------- */}
-        <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Lançamentos de {formatarCompetenciaLonga(competencia)}</h2>
-          {lista.length === 0 ? (
-            <p className="mt-2 text-sm text-zinc-500">
-              {carregando ? 'Carregando…' : 'Nenhum lançamento neste mês.'}
+        {/* ---------- Lista do mês ---------- */}
+        <Secao
+          titulo={verTudo ? 'Tudo deste mês' : 'Ainda vence este mês'}
+          acao={
+            <button type="button" onClick={() => setVerTudo((v) => !v)} className="-my-3 flex min-h-[44px] items-center px-1 text-xs font-semibold text-acao">
+              {verTudo ? 'Só o que vence' : 'Ver tudo'}
+            </button>
+          }
+        >
+          {linhas.length === 0 ? (
+            <p className="py-2 text-sm text-ink-3">
+              {carregando ? 'Carregando…'
+                : verTudo ? 'Nenhum lançamento neste mês.'
+                : 'Nada pendente até o fim do mês.'}
             </p>
           ) : (
-            <ul className="mt-2 divide-y divide-zinc-800">
-              {lista.map((l) => (
-                <li key={l.parcela_id}>
-                  <button
-                    type="button"
-                    onClick={() => setDetalheId(l.lancamento_id)}
-                    className="flex w-full items-center gap-3 py-2.5 text-left active:bg-zinc-800/60"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: l.categoria_cor + '26', color: l.categoria_cor }}>
-                      <Icone nome={l.categoria_icone as NomeIcone} tamanho={18} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{l.descricao || l.categoria_nome}</span>
-                      <span className="block text-xs text-zinc-500">
-                        {formatarData(l.vencimento)}
-                        {l.parcelas_total > 1 && ` · ${l.numero}/${l.parcelas_total}`}
-                        {l.cartao_apelido && ` · ${l.cartao_apelido}`}
+            <ul>
+              {linhas.map((l) => (
+                <li key={l.parcelaId} className="border-t border-line first:border-t-0">
+                  <div className={'flex items-center gap-2.5 ' + (l.pago ? 'opacity-[0.42]' : '')}>
+                    <button
+                      type="button" onClick={() => setDetalheId(l.lancamentoId)}
+                      className="flex min-h-[62px] flex-1 items-center gap-2.5 rounded-xl px-1 text-left active:bg-s1"
+                    >
+                      <Dia vencimento={l.vencimento} dias={l.diasRestantes} />
+                      <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px]"
+                        style={{ backgroundColor: l.cor + '24', color: l.cor }}>
+                        <Icone nome={l.icone as NomeIcone} tamanho={17} />
                       </span>
-                    </span>
-                    <span className="shrink-0 text-right">
-                      <span className={'block text-sm font-semibold tabular-nums ' + (l.natureza === 'resgate' ? 'text-emerald-400' : '')}>
-                        {l.natureza === 'resgate' ? '+' : ''}{formatarMoeda(l.valor)}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14.5px] font-semibold">{l.titulo}</span>
+                        {l.subtitulo && <span className="block truncate text-[11.5px] text-ink-3">{l.subtitulo}</span>}
                       </span>
-                      {l.status === 'pago' && <span className="text-[10px] text-emerald-400">pago</span>}
-                    </span>
-                    <Icone nome="seta" tamanho={16} className="shrink-0 text-zinc-600" />
-                  </button>
+                      <span className="tnum shrink-0 text-[15px] font-semibold tracking-[-0.02em]">{formatarMoeda(l.valor)}</span>
+                    </button>
+                    {l.pago ? (
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center text-acao" aria-label="Pago">
+                        <Icone nome="check" tamanho={18} />
+                      </span>
+                    ) : (
+                      <button
+                        type="button" onClick={() => void pagar(l.parcelaId, l.titulo)}
+                        aria-label={`Marcar ${l.titulo} como pago`}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-3 active:bg-s2"
+                      >
+                        <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full border border-line">
+                          <Icone nome="check" tamanho={16} />
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-        </Cartao>
+        </Secao>
 
         {/* ---------- Orçamento ---------- */}
-        <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Orçamento do mês</h2>
+        <Secao titulo="Orçamento">
           {comTeto.length === 0 ? (
-            <p className="mt-2 text-sm text-zinc-500">Sem gastos neste mês. Tetos por categoria ficam no Perfil.</p>
+            <p className="py-2 text-sm text-ink-3">Sem gastos neste mês. Tetos por categoria ficam no Perfil.</p>
           ) : (
-            <ul className="mt-3 space-y-3">
-              {comTeto.map((c) => (
-                <li key={c.categoria_id}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="inline-flex items-center gap-2" style={{ color: c.cor }}>
-                      <Icone nome={c.icone as NomeIcone} tamanho={16} /><span className="text-zinc-200">{c.nome}</span>
-                    </span>
-                    <span className="tabular-nums text-zinc-400">
-                      <b className={'text-zinc-100 ' + (c.teto !== null && c.valor > c.teto ? 'text-red-400' : '')}>{formatarMoeda(c.valor)}</b>
-                      {c.teto !== null && ` / ${formatarMoeda(c.teto)}`}
-                    </span>
-                  </div>
-                  <Barra valor={c.valor} maximo={c.teto ?? Math.max(c.valor, 1)} cor={c.cor} />
-                </li>
-              ))}
+            <ul className="space-y-3.5">
+              {comTeto.map((c) => {
+                const estourou = c.teto !== null && c.valor > c.teto
+                return (
+                  <li key={c.categoria_id}>
+                    <div className="mb-1.5 flex items-center gap-2 text-[13px]">
+                      <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg"
+                        style={{ backgroundColor: c.cor + '24', color: c.cor }}>
+                        <Icone nome={c.icone as NomeIcone} tamanho={14} />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{c.nome}</span>
+                      <span className="tnum shrink-0 text-ink-2">
+                        <b className={estourou ? 'text-perigo' : 'text-ink'}>{formatarMoeda(c.valor)}</b>
+                        {c.teto !== null && ` / ${formatarMoeda(c.teto)}`}
+                      </span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-s2">
+                      <i className="block h-full rounded-full"
+                        style={{
+                          width: `${Math.min(100, (c.valor / Math.max(c.teto ?? c.valor, 1)) * 100)}%`,
+                          backgroundColor: estourou ? 'var(--color-perigo)' : c.cor,
+                        }} />
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           )}
-        </Cartao>
+        </Secao>
 
-        {/* ---------- Fechamento ---------- */}
+        {/* ---------- Entre vocês ---------- */}
+        {escopo === 'compartilhado' && parceiro && user && (
+          <Secao titulo="Entre vocês">
+            <div className="rounded-[20px] border border-line bg-s1 p-4">
+              <div className="mb-3 flex flex-wrap gap-2.5">
+                {membros.map((m, i) => (
+                  <Pessoa key={m.user_id} nome={m.nome} pct={m.percentual_rateio} indice={i} />
+                ))}
+              </div>
+              {devedor && credor ? (
+                <p className="text-[17px] font-semibold tracking-[-0.02em]">
+                  <span className={devedor.user_id === user.id ? 'text-p1' : 'text-p2'}>{nomePor(devedor.user_id)}</span>
+                  {' '}deve <b className="tnum">{formatarMoeda(-devedor.saldo)}</b> a {nomePor(credor.user_id)}
+                </p>
+              ) : (
+                <p className="text-[17px] font-semibold tracking-[-0.02em] text-ink-2">Contas zeradas</p>
+              )}
+              {devedor && credor && (
+                <Botao variante="secundario" className="mt-3" onClick={() => setFolhaAcerto(true)}>Registrar acerto</Botao>
+              )}
+            </div>
+          </Secao>
+        )}
+
         {(podeFechar || fechado) && (
           <Botao variante="fantasma" onClick={() => void alternarFechamento()}>
             <Icone nome="cadeado" tamanho={18} className="mr-2" /> {fechado ? 'Reabrir mês' : 'Fechar mês'}
@@ -302,30 +329,56 @@ export function Inicio() {
   )
 }
 
-function Kpi({ rotulo, valor, carregando, negativo, destaque }: { rotulo: string; valor: number; carregando: boolean; negativo?: boolean; destaque?: boolean }) {
-  const cor = destaque ? (valor < 0 ? 'text-red-400' : 'text-emerald-400') : negativo ? 'text-zinc-100' : 'text-zinc-100'
+function Secao({ titulo, acao, children }: { titulo: string; acao?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-      <p className="text-xs text-zinc-500">{rotulo}</p>
-      <p className={'mt-1 truncate text-xl font-bold tabular-nums ' + cor}>{carregando ? '—' : formatarMoeda(valor)}</p>
-    </div>
+    <section className="pt-2">
+      <div className="mb-2 flex items-baseline justify-between">
+        <h2 className="text-[13px] font-bold uppercase tracking-[0.04em] text-ink-2">{titulo}</h2>
+        {acao}
+      </div>
+      {children}
+    </section>
   )
 }
 
-function KpiTexto({ rotulo, valor, sub, carregando }: { rotulo: string; valor: string; sub: string; carregando: boolean }) {
+/**
+ * Selo do dia. Substitui o "em 4 dias" solto por uma âncora visual: a data
+ * é o que se procura ao correr o olho por uma lista de contas.
+ */
+function Dia({ vencimento, dias }: { vencimento: string; dias: number | null }) {
+  const { dia } = partes(vencimento)
+  const urgente = dias !== null && dias <= 2
+  const texto = dias === null ? mesCurto(vencimento)
+    : dias < 0 ? `${-dias}d atrás`
+    : dias === 0 ? 'hoje'
+    : dias === 1 ? 'amanhã'
+    : `${dias} dias`
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-      <p className="text-xs text-zinc-500">{rotulo}</p>
-      <p className="mt-1 text-xl font-bold tabular-nums">{carregando ? '—' : valor}</p>
-      {sub && !carregando && <p className="truncate text-[11px] text-zinc-500">{sub}</p>}
-    </div>
+    <span className={'flex w-[52px] shrink-0 flex-col items-center justify-center rounded-[10px] px-0.5 py-1.5 leading-tight ' +
+      (urgente ? 'bg-perigo/15 text-perigo' : 'bg-s2')}>
+      <b className="tnum text-base font-bold">{String(dia).padStart(2, '0')}</b>
+      <span className={'text-[10px] ' + (urgente ? '' : 'text-ink-3')}>{texto}</span>
+    </span>
   )
 }
 
-function BadgeDias({ dias }: { dias: number }) {
-  const texto = dias < 0 ? `${-dias}d atrás` : dias === 0 ? 'hoje' : dias === 1 ? 'amanhã' : `${dias} dias`
-  const cor = dias <= 2 ? 'bg-red-500/15 text-red-300' : 'bg-zinc-800 text-zinc-400'
-  return <span className={'mt-0.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ' + cor}>{texto}</span>
+/** Azul e âmbar, não verde e vermelho: sobrevivem ao daltonismo. */
+function Pessoa({ nome, pct, indice }: { nome: string; pct: number; indice: number }) {
+  const p1 = indice === 0
+  return (
+    <span className={'flex items-center gap-1.5 text-xs ' + (p1 ? 'text-p1' : 'text-p2')}>
+      <i className={'flex h-[26px] w-[26px] items-center justify-center rounded-full text-[11px] font-extrabold not-italic ' +
+        (p1 ? 'bg-p1/20' : 'bg-p2/20')}>
+        {nome.trim().charAt(0).toUpperCase()}
+      </i>
+      <span className="text-ink-2">{nome.split(' ')[0]} {Math.round(pct)}%</span>
+    </span>
+  )
+}
+
+function mesCurto(data: string): string {
+  const { mes } = partes(data)
+  return ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][mes - 1]
 }
 
 function FormAcerto({ householdId, de, para, nomeDe, nomePara, sugestao, onSalvo }: { householdId: string; de: string; para: string; nomeDe: string; nomePara: string; sugestao: number; onSalvo: () => Promise<void> }) {
@@ -343,7 +396,7 @@ function FormAcerto({ householdId, de, para, nomeDe, nomePara, sugestao, onSalvo
   }
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">{nomeDe} pagou a {nomePara}:</p>
+      <p className="text-sm text-ink-2">{nomeDe} pagou a {nomePara}:</p>
       <CampoMoeda rotulo="Valor" valor={valor} onChange={setValor} autoFocus grande />
       <Campo id="descAcerto" rotulo="Descrição" value={descricao} onChange={(e) => setDescricao(e.target.value)} />
       {erro && <Aviso>{erro}</Aviso>}

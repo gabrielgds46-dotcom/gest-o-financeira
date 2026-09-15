@@ -22,12 +22,12 @@ export function Folha({ aberta, titulo, onFechar, children }: Props) {
         aria-modal="true"
         aria-label={titulo}
         onClick={(e) => e.stopPropagation()}
-        className="safe-bottom max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-zinc-950 px-5 pt-3 pb-6 shadow-2xl"
+        className="safe-bottom max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-bg px-5 pt-3 pb-6 shadow-2xl"
       >
-        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-zinc-700" />
+        <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-s3" />
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">{titulo}</h2>
-          <button type="button" onClick={onFechar} aria-label="Fechar" className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 active:bg-zinc-800">
+          <button type="button" onClick={onFechar} aria-label="Fechar" className="-mr-2 flex h-11 w-11 items-center justify-center rounded-full text-ink-2 active:bg-s2">
             <Icone nome="fechar" />
           </button>
         </div>

@@ -164,7 +164,7 @@ export function Lancar() {
     <Tela
       titulo="Lançar"
       acao={
-        <button type="button" onClick={() => void repetirUltimo()} className="flex h-11 items-center gap-1.5 rounded-full bg-zinc-800 px-3 text-sm font-medium text-zinc-200 active:bg-zinc-700">
+        <button type="button" onClick={() => void repetirUltimo()} className="flex h-11 items-center gap-1.5 rounded-full bg-s2 px-3 text-sm font-medium text-ink active:bg-s3">
           <Icone nome="repetir" tamanho={16} /> Repetir último
         </button>
       }
@@ -186,7 +186,7 @@ export function Lancar() {
 
         {escopo === 'compartilhado' && parceiro && user && (
           <div>
-            <span className="mb-1.5 block text-sm font-medium text-zinc-300">Quem pagou</span>
+            <span className="mb-1.5 block text-sm font-medium text-ink-2">Quem pagou</span>
             <Alternador
               rotulo="Quem pagou"
               opcoes={[{ valor: user.id, rotulo: perfil?.nome.split(' ')[0] ?? 'Eu' }, { valor: parceiro.user_id, rotulo: parceiro.nome.split(' ')[0] }]}
@@ -200,27 +200,31 @@ export function Lancar() {
             <Aviso tipo="info">
               {escopo === 'compartilhado' && pagoPor !== user?.id
                 ? `${parceiro?.nome.split(' ')[0]} ainda não cadastrou cartão.`
-                : <>Cadastre um cartão no <button type="button" className="font-semibold text-emerald-400" onClick={() => navigate('/perfil')}>Perfil</button> para lançar no crédito.</>}
+                : <>Cadastre um cartão no{' '}
+                    {/* Link dentro da frase: a WCAG 2.5.8 isenta alvos inline,
+                        e esticar para 44px quebraria o parágrafo. */}
+                    <button type="button" data-inline className="py-1 font-semibold text-acao underline decoration-acao/40 underline-offset-2" onClick={() => navigate('/perfil')}>Perfil</button>
+                    {' '}para lançar no crédito.</>}
             </Aviso>
           ) : cartoesDoPagador.length > 1 ? (
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-zinc-300">Cartão</span>
+              <span className="mb-1.5 block text-sm font-medium text-ink-2">Cartão</span>
               <div className="flex flex-wrap gap-2">
                 {cartoesDoPagador.map((c) => (
                   <button key={c.id} type="button" onClick={() => setCartaoId(c.id)}
-                    className={'h-11 rounded-full border px-4 text-sm font-medium ' + (c.id === cartaoId ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300' : 'border-zinc-700 text-zinc-300')}>
+                    className={'h-11 rounded-full border px-4 text-sm font-medium ' + (c.id === cartaoId ? 'border-acao bg-acao/15 text-acao' : 'border-s3 text-ink-2')}>
                     {c.apelido}
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-xs text-zinc-500">Cartão: <b className="text-zinc-300">{cartao?.apelido}</b> · fecha dia {cartao?.dia_fechamento}, vence dia {cartao?.dia_vencimento}</p>
+            <p className="text-xs text-ink-3">Cartão: <b className="text-ink-2">{cartao?.apelido}</b> · fecha dia {cartao?.dia_fechamento}, vence dia {cartao?.dia_vencimento}</p>
           )
         )}
 
         <div>
-          <span className="mb-1.5 block text-sm font-medium text-zinc-300">Categoria</span>
+          <span className="mb-1.5 block text-sm font-medium text-ink-2">Categoria</span>
           <GridCategorias
             categorias={categorias} valor={categoriaId} sugerida={sugerida}
             onChange={(id) => { setCategoriaId(id); setCategoriaManual(true) }}
@@ -242,13 +246,13 @@ export function Lancar() {
           <Campo id="data" rotulo="Data" type="date" value={data} max={undefined} onChange={(e) => setData(e.target.value)} />
           {metodo === 'credito' && (
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-zinc-300">Parcelas</span>
-              <div className="flex h-12 items-center rounded-xl border border-zinc-800 bg-zinc-900">
-                <button type="button" aria-label="Menos parcelas" onClick={() => setParcelasTotal((n) => Math.max(1, n - 1))} className="h-full w-12 text-xl text-zinc-300 active:bg-zinc-800">−</button>
+              <span className="mb-1.5 block text-sm font-medium text-ink-2">Parcelas</span>
+              <div className="flex h-12 items-center rounded-xl border border-s2 bg-s1">
+                <button type="button" aria-label="Menos parcelas" onClick={() => setParcelasTotal((n) => Math.max(1, n - 1))} className="h-full w-12 text-xl text-ink-2 active:bg-s2">−</button>
                 <input type="text" inputMode="numeric" aria-label="Número de parcelas" value={parcelasTotal}
                   onChange={(e) => { const n = Number(e.target.value.replace(/\D/g, '')); setParcelasTotal(Math.min(PARCELAS_MAX, Math.max(1, n || 1))) }}
                   className="h-full w-full bg-transparent text-center text-base font-semibold outline-none" />
-                <button type="button" aria-label="Mais parcelas" onClick={() => setParcelasTotal((n) => Math.min(PARCELAS_MAX, n + 1))} className="h-full w-12 text-xl text-zinc-300 active:bg-zinc-800">+</button>
+                <button type="button" aria-label="Mais parcelas" onClick={() => setParcelasTotal((n) => Math.min(PARCELAS_MAX, n + 1))} className="h-full w-12 text-xl text-ink-2 active:bg-s2">+</button>
               </div>
             </div>
           )}
@@ -256,7 +260,7 @@ export function Lancar() {
 
         {/* Prévia obrigatória */}
         {previa.parcelas.length > 0 && (
-          <p className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm font-medium text-zinc-200" aria-live="polite">
+          <p className="rounded-xl bg-s1 px-4 py-3 text-center text-sm font-medium text-ink" aria-live="polite">
             {descreverParcelamento(previa.parcelas)}
           </p>
         )}

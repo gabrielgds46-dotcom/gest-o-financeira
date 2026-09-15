@@ -37,27 +37,27 @@ export function PainelRecorrencias({ ownerId, householdId, temParceiro }: { owne
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-zinc-400">Contas que se repetem todo mês. São geradas sozinhas na virada, com o valor esperado, e ficam editáveis quando a conta real chega.</p>
+      <p className="text-sm text-ink-2">Contas que se repetem todo mês. São geradas sozinhas na virada, com o valor esperado, e ficam editáveis quando a conta real chega.</p>
       {erro && <Aviso>{erro}</Aviso>}
       {lista.length === 0 ? (
-        <p className="text-sm text-zinc-500">Nenhuma recorrência cadastrada.</p>
+        <p className="text-sm text-ink-3">Nenhuma recorrência cadastrada.</p>
       ) : (
-        <ul className="divide-y divide-zinc-800">
+        <ul className="divide-y divide-s2">
           {lista.map((r) => (
             <li key={r.id}>
               <button type="button" onClick={() => setFolha(r)} className="flex w-full items-center gap-3 py-3 text-left">
-                <span className={'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ' + (r.ativo ? (r.tipo === 'receita' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-zinc-800 text-zinc-300') : 'bg-zinc-900 text-zinc-600')}>
+                <span className={'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ' + (r.ativo ? (r.tipo === 'receita' ? 'bg-acao/15 text-acao' : 'bg-s2 text-ink-2') : 'bg-s1 text-ink-3')}>
                   <Icone nome={r.tipo === 'receita' ? 'trending-up' : 'repetir'} tamanho={18} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={'block truncate font-medium ' + (r.ativo ? '' : 'text-zinc-500 line-through')}>{r.descricao}</span>
-                  <span className="block text-xs text-zinc-500">
+                  <span className={'block truncate font-medium ' + (r.ativo ? '' : 'text-ink-3 line-through')}>{r.descricao}</span>
+                  <span className="block text-xs text-ink-3">
                     dia {r.dia_vencimento} · {r.escopo === 'compartilhado' ? 'compartilhado' : 'pessoal'}
                     {r.fim && ' · até ' + r.fim.slice(0, 7).split('-').reverse().join('/')}
                   </span>
                 </span>
                 <span className="text-sm font-semibold tabular-nums">{formatarMoeda(r.valor)}</span>
-                <Icone nome="seta" className="text-zinc-600" />
+                <Icone nome="seta" className="text-ink-3" />
               </button>
             </li>
           ))}

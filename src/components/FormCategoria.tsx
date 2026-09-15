@@ -41,7 +41,7 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
   return (
     <div className="space-y-5">
       {/* Prévia: é exatamente o quadradinho que vai aparecer na grade de Lançar. */}
-      <div className="flex flex-col items-center gap-2 rounded-2xl bg-zinc-900 py-5">
+      <div className="flex flex-col items-center gap-2 rounded-2xl bg-s1 py-5">
         <span className="flex h-16 w-16 items-center justify-center rounded-2xl"
           style={{ backgroundColor: cor + '26', color: cor }}>
           <Icone nome={icone} tamanho={30} />
@@ -56,11 +56,11 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
           maxLength={LIMITE_NOME}
           value={nome} onChange={(e) => setNome(e.target.value)}
         />
-        <p className="mt-1 text-right text-xs text-zinc-500 tabular-nums">{nome.length}/{LIMITE_NOME}</p>
+        <p className="mt-1 text-right text-xs text-ink-3 tabular-nums">{nome.length}/{LIMITE_NOME}</p>
       </div>
 
       <div>
-        <span className="mb-1.5 block text-sm font-medium text-zinc-300">Ícone</span>
+        <span className="mb-1.5 block text-sm font-medium text-ink-2">Ícone</span>
         <div role="radiogroup" aria-label="Ícone" className="grid grid-cols-6 gap-2">
           {ICONES_CATEGORIA.map((n) => (
             <button
@@ -68,7 +68,7 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
               onClick={() => setIcone(n)}
               style={n === icone ? { backgroundColor: cor + '26', borderColor: cor, color: cor } : undefined}
               className={'flex h-12 items-center justify-center rounded-xl border transition active:scale-95 ' +
-                (n === icone ? '' : 'border-zinc-800 bg-zinc-900 text-zinc-400')}
+                (n === icone ? '' : 'border-s2 bg-s1 text-ink-2')}
             >
               <Icone nome={n} tamanho={20} />
             </button>
@@ -77,14 +77,14 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
       </div>
 
       <div>
-        <span className="mb-1.5 block text-sm font-medium text-zinc-300">Cor</span>
+        <span className="mb-1.5 block text-sm font-medium text-ink-2">Cor</span>
         <div role="radiogroup" aria-label="Cor" className="grid grid-cols-6 gap-2">
           {CORES_CATEGORIA.map((c) => (
             <button
               key={c} type="button" role="radio" aria-checked={c === cor} aria-label={`Cor ${c}`}
               onClick={() => setCor(c)}
               className={'flex h-11 items-center justify-center rounded-xl border-2 transition active:scale-95 ' +
-                (c === cor ? 'border-zinc-100' : 'border-transparent')}
+                (c === cor ? 'border-ink' : 'border-transparent')}
               style={{ backgroundColor: c + '33' }}
             >
               <span className="h-5 w-5 rounded-full" style={{ backgroundColor: c }} />
@@ -97,8 +97,8 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
           mudar isso depois reescreveria os meses já fechados. Por isso só
           na criação. */}
       {editando ? (
-        <p className="text-xs text-zinc-500">
-          Tipo: <b className="text-zinc-300">{grupo === 'reserva' ? 'Reserva' : 'Gasto'}</b>. Não muda depois de criada,
+        <p className="text-xs text-ink-3">
+          Tipo: <b className="text-ink-2">{grupo === 'reserva' ? 'Reserva' : 'Gasto'}</b>. Não muda depois de criada,
           porque isso mudaria os meses que já passaram.
         </p>
       ) : (
@@ -108,7 +108,7 @@ export function FormCategoria({ categoria, onSalvo }: Props) {
             opcoes={[{ valor: 'despesa', rotulo: 'Gasto' }, { valor: 'reserva', rotulo: 'Reserva' }]}
             valor={grupo} onChange={setGrupo}
           />
-          <p className="mt-1.5 text-xs text-zinc-500">
+          <p className="mt-1.5 text-xs text-ink-3">
             {grupo === 'reserva'
               ? 'Reserva é dinheiro guardado: entra na taxa de poupança e não conta como gasto.'
               : 'Gasto é dinheiro que sai: conta no orçamento e no total do mês.'}

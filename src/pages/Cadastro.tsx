@@ -46,8 +46,8 @@ export function Cadastro() {
     return (
       <main className="safe-top safe-bottom mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10 text-center">
         <h1 className="text-2xl font-bold">Confirme seu email</h1>
-        <p className="mt-3 text-zinc-400">
-          Enviamos um link para <span className="text-zinc-200">{email}</span>. Abra o link para ativar
+        <p className="mt-3 text-ink-2">
+          Enviamos um link para <span className="text-ink">{email}</span>. Abra o link para ativar
           sua conta e depois volte para entrar.
         </p>
         <Link to="/entrar" className="mt-8">
@@ -61,7 +61,7 @@ export function Cadastro() {
     <main className="safe-top safe-bottom mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10">
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold">Criar conta</h1>
-        <p className="mt-1 text-zinc-400">Leva menos de um minuto</p>
+        <p className="mt-1 text-ink-2">Leva menos de um minuto</p>
       </div>
 
       <div className="space-y-4" onKeyDown={aoTeclar}>
@@ -102,7 +102,7 @@ export function Cadastro() {
         />
 
         {erro && (
-          <p role="alert" className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <p role="alert" className="rounded-xl bg-perigo/10 px-4 py-3 text-sm text-perigo">
             {erro}
           </p>
         )}
@@ -112,9 +112,9 @@ export function Cadastro() {
         </Botao>
       </div>
 
-      <p className="mt-8 text-center text-sm text-zinc-400">
+      <p className="mt-8 text-center text-sm text-ink-2">
         Já tem conta?{' '}
-        <Link to="/entrar" className="font-semibold text-emerald-400">
+        <Link to="/entrar" className="font-semibold text-acao">
           Entrar
         </Link>
       </p>

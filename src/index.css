@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* =============================================================
+   Paleta do app. Escura e fixa: é a identidade, não uma preferência.
+   Os três níveis de tinta são deliberados — mais que isso vira cinza
+   indistinguível. Todos medidos contra o cartão (--color-s1, #141816):
+     ink   16,18:1    ink-2  9,21:1    ink-3  5,74:1
+   O ink-3 é a correção da auditoria: o zinc-500 que ele substitui
+   ficava em 3,67:1 e reprovava no AA, justamente no texto secundário
+   que aparece em toda linha de lançamento.
+   ============================================================= */
+@theme {
+  --color-bg:    #0a0c0b;
+  --color-s1:    #141816;
+  --color-s2:    #1c2220;
+  --color-s3:    #262d2a;
+  --color-line:  #2d3532;
+
+  --color-ink:   #f1f4f2;
+  --color-ink-2: #b3bcb7;
+  --color-ink-3: #8b948f;
+
+  /* Verde = ação e dinheiro positivo. Só isso, em lugar nenhum mais. */
+  --color-acao:    #2fd399;
+  --color-acao-esc:#17704f;
+
+  /* As duas pessoas da casa. Azul e âmbar sobrevivem a daltonismo;
+     o par verde/vermelho de antes, não. */
+  --color-p1: #5b9cf5;
+  --color-p2: #f0a83c;
+
+  --color-perigo:  #f4705a;
+  --color-atencao: #e8b33f;
+}
+
 /* Modo escuro por padrão. A classe .dark no <html> ativa o variante dark: do Tailwind. */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -9,8 +42,8 @@
 
 html, body, #root {
   min-height: 100dvh;
-  background: #09090b;
-  color: #f4f4f5;
+  background: var(--color-bg);
+  color: var(--color-ink);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   /* Sem o "puxão" elástico do iOS: instalado como app, ele denuncia que é web. */
@@ -30,6 +63,9 @@ button, a, input, select, [role='radio'], [role='button'] {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Números alinham em coluna: sem isso, R$ 1.111 parece menor que R$ 999. */
+.tnum { font-variant-numeric: tabular-nums; }
 
 /* Respeita o notch e a barra inferior do iPhone. */
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }

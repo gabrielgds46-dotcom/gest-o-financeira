@@ -112,7 +112,7 @@ export function Comecar() {
           <div className="mb-10 mt-6">
             <img src="/favicon.svg" alt="" className="mb-4 h-14 w-14" />
             <h1 className="text-3xl font-bold">Olá, {perfil.nome.split(' ')[0]}</h1>
-            <p className="mt-2 text-zinc-400">
+            <p className="mt-2 text-ink-2">
               O app funciona em dupla. Crie a casa do casal ou entre na que já existe com um código de convite.
             </p>
           </div>
@@ -175,9 +175,9 @@ export function Comecar() {
 
       {etapa === 'convidar' && (
         <Passo titulo="Convide seu par" descricao="Envie este código. Ele vale por 7 dias e só pode ser usado uma vez. Você também encontra o código no Perfil.">
-          <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 py-6 text-center">
-            <p className="text-xs uppercase tracking-widest text-emerald-400">código de convite</p>
-            <p className="mt-2 font-mono text-4xl font-bold tracking-[0.3em] text-emerald-300">{codigoGerado}</p>
+          <div className="rounded-2xl border border-acao/30 bg-acao/10 py-6 text-center">
+            <p className="text-xs uppercase tracking-widest text-acao">código de convite</p>
+            <p className="mt-2 font-mono text-4xl font-bold tracking-[0.3em] text-acao">{codigoGerado}</p>
           </div>
           <Botao onClick={compartilhar}>
             <Icone nome="compartilhar" className="mr-2" /> Compartilhar código
@@ -194,7 +194,7 @@ function Progresso({ atual, total }: { atual: number; total: number }) {
   return (
     <div className="mb-6 flex gap-1.5" aria-label={`Etapa ${atual} de ${total}`}>
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className={'h-1 flex-1 rounded-full ' + (i < atual ? 'bg-emerald-500' : 'bg-zinc-800')} />
+        <span key={i} className={'h-1 flex-1 rounded-full ' + (i < atual ? 'bg-acao' : 'bg-s2')} />
       ))}
     </div>
   )
@@ -204,12 +204,12 @@ function Passo({ titulo, descricao, onVoltar, children }: { titulo: string; desc
   return (
     <>
       {onVoltar && (
-        <button type="button" onClick={onVoltar} className="-ml-2 mb-2 flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 active:bg-zinc-900" aria-label="Voltar">
+        <button type="button" onClick={onVoltar} className="-ml-2 mb-2 flex h-11 w-11 items-center justify-center rounded-full text-ink-2 active:bg-s1" aria-label="Voltar">
           <Icone nome="voltar" />
         </button>
       )}
       <h1 className="text-2xl font-bold">{titulo}</h1>
-      <p className="mb-6 mt-1 text-zinc-400">{descricao}</p>
+      <p className="mb-6 mt-1 text-ink-2">{descricao}</p>
       <div className="space-y-4">{children}</div>
     </>
   )
@@ -217,15 +217,15 @@ function Passo({ titulo, descricao, onVoltar, children }: { titulo: string; desc
 
 function BotaoGrande({ icone, titulo, descricao, onClick }: { icone: 'casal' | 'chave'; titulo: string; descricao: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex w-full items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 text-left active:bg-zinc-800">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+    <button type="button" onClick={onClick} className="flex w-full items-center gap-4 rounded-2xl border border-s2 bg-s1 p-4 text-left active:bg-s2">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-acao/15 text-acao">
         <Icone nome={icone} />
       </span>
       <span className="flex-1">
         <span className="block font-semibold">{titulo}</span>
-        <span className="block text-sm text-zinc-400">{descricao}</span>
+        <span className="block text-sm text-ink-2">{descricao}</span>
       </span>
-      <Icone nome="seta" className="text-zinc-600" />
+      <Icone nome="seta" className="text-ink-3" />
     </button>
   )
 }

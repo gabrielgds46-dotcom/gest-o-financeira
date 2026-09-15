@@ -91,7 +91,7 @@ export function Analise() {
     <Tela
       titulo="Análise"
       acao={
-        <button type="button" onClick={() => setFolhaExport(true)} className="flex h-11 items-center gap-1.5 rounded-full bg-zinc-800 px-3 text-sm font-medium text-zinc-200 active:bg-zinc-700">
+        <button type="button" onClick={() => setFolhaExport(true)} className="flex h-11 items-center gap-1.5 rounded-full bg-s2 px-3 text-sm font-medium text-ink active:bg-s3">
           <Icone nome="compartilhar" tamanho={16} /> CSV
         </button>
       }
@@ -108,7 +108,7 @@ export function Analise() {
           desabilitados={parceiro ? [] : ['compartilhado', 'consolidado']}
         />
         {visao === 'consolidado' && parceiro && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-ink-3">
             Renda da casa inteira e os gastos que você vê. Os gastos pessoais de {parceiro.nome.split(' ')[0]} são privados e não entram.
           </p>
         )}
@@ -118,8 +118,8 @@ export function Analise() {
 
         {/* ---------- Comprometimento futuro: o indicador mais importante ---------- */}
         <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Comprometimento futuro</h2>
-          <p className="mb-3 text-xs text-zinc-500">Parcelas já assumidas nos próximos 12 meses. É quanto do salário futuro já foi vendido.</p>
+          <h2 className="text-sm font-semibold text-ink-2">Comprometimento futuro</h2>
+          <p className="mb-3 text-xs text-ink-3">Parcelas já assumidas nos próximos 12 meses. É quanto do salário futuro já foi vendido.</p>
           {futuro.some((f) => f.valor > 0) ? (
             <>
               <ResponsiveContainer width="100%" height={180}>
@@ -136,9 +136,9 @@ export function Analise() {
                 </BarChart>
               </ResponsiveContainer>
               <dl className="mt-2 flex justify-between text-xs">
-                <div><dt className="text-zinc-500">Total assumido</dt>
+                <div><dt className="text-ink-3">Total assumido</dt>
                   <dd className="text-sm font-semibold tabular-nums">{formatarMoeda(futuro.reduce((s, f) => s + f.valor, 0))}</dd></div>
-                <div className="text-right"><dt className="text-zinc-500">Maior mês</dt>
+                <div className="text-right"><dt className="text-ink-3">Maior mês</dt>
                   <dd className="text-sm font-semibold tabular-nums">{formatarMoeda(Math.max(...futuro.map((f) => f.valor)))}</dd></div>
               </dl>
             </>
@@ -147,8 +147,8 @@ export function Analise() {
 
         {/* ---------- Por categoria ---------- */}
         <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Por categoria</h2>
-          <p className="mb-3 text-xs text-zinc-500">Percentual sobre o gasto do mês. Reservas ficam fora da conta.</p>
+          <h2 className="text-sm font-semibold text-ink-2">Por categoria</h2>
+          <p className="mb-3 text-xs text-ink-3">Percentual sobre o gasto do mês. Reservas ficam fora da conta.</p>
           {despesas.length ? (
             <ul className="space-y-3">
               {despesas.map((c) => {
@@ -159,20 +159,20 @@ export function Analise() {
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md" style={{ backgroundColor: c.cor + '26', color: c.cor }}>
                         <Icone nome={c.icone as NomeIcone} tamanho={14} />
                       </span>
-                      <span className="flex-1 truncate text-zinc-200">{c.nome}</span>
-                      <span className="tabular-nums text-zinc-400">{formatarMoeda(c.valor)}</span>
+                      <span className="flex-1 truncate text-ink">{c.nome}</span>
+                      <span className="tabular-nums text-ink-2">{formatarMoeda(c.valor)}</span>
                       <span className="w-9 text-right font-semibold tabular-nums">{pct}%</span>
                     </div>
                     <Barra valor={c.valor} maximo={totalDespesa} cor={c.cor} />
                   </li>
                 )
               })}
-              <li className="flex justify-between border-t border-zinc-800 pt-2 text-sm">
-                <span className="text-zinc-400">Total</span>
+              <li className="flex justify-between border-t border-s2 pt-2 text-sm">
+                <span className="text-ink-2">Total</span>
                 <b className="tabular-nums">{formatarMoeda(totalDespesa)}</b>
               </li>
               {reservas.length > 0 && (
-                <li className="text-xs text-zinc-500">
+                <li className="text-xs text-ink-3">
                   Fora da conta: {reservas.map((r) => `${r.nome} ${formatarMoeda(r.valor)}`).join(' · ')}
                 </li>
               )}
@@ -182,7 +182,7 @@ export function Analise() {
 
         {/* ---------- Crédito vs à vista ---------- */}
         <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Como você pagou</h2>
+          <h2 className="text-sm font-semibold text-ink-2">Como você pagou</h2>
           {totalMetodo > 0 ? (
             <>
               <div className="mt-3 flex h-4 gap-0.5 overflow-hidden rounded-full">
@@ -199,7 +199,7 @@ export function Analise() {
 
         {/* ---------- Evolução ---------- */}
         <Cartao>
-          <h2 className="text-sm font-semibold text-zinc-300">Renda e gasto, 6 meses</h2>
+          <h2 className="text-sm font-semibold text-ink-2">Renda e gasto, 6 meses</h2>
           {evolucao.some((e) => e.renda > 0 || e.gasto > 0) ? (
             <ResponsiveContainer width="100%" height={190}>
               <LineChart data={evolucao} margin={{ top: 10, right: 8, left: -18, bottom: 0 }}>
@@ -218,21 +218,21 @@ export function Analise() {
         {/* ---------- Limite por cartão ---------- */}
         {cartoes.length > 0 && (
           <Cartao>
-            <h2 className="text-sm font-semibold text-zinc-300">Limite comprometido</h2>
-            <p className="mb-3 text-xs text-zinc-500">Parcelas pendentes deste mês em diante. Só os seus cartões.</p>
+            <h2 className="text-sm font-semibold text-ink-2">Limite comprometido</h2>
+            <p className="mb-3 text-xs text-ink-3">Parcelas pendentes deste mês em diante. Só os seus cartões.</p>
             <ul className="space-y-3">
               {cartoes.map((c) => (
                 <li key={c.cartao_id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="inline-flex items-center gap-2 text-zinc-200"><Icone nome="cartao" tamanho={16} />{c.apelido}</span>
-                    <span className="tabular-nums text-zinc-400">
-                      <b className="text-zinc-100">{formatarMoeda(c.comprometido)}</b>
+                    <span className="inline-flex items-center gap-2 text-ink"><Icone nome="cartao" tamanho={16} />{c.apelido}</span>
+                    <span className="tabular-nums text-ink-2">
+                      <b className="text-ink">{formatarMoeda(c.comprometido)}</b>
                       {c.limite !== null && ` / ${formatarMoeda(c.limite)}`}
                     </span>
                   </div>
                   {c.limite !== null
                     ? <Barra valor={c.comprometido} maximo={c.limite} />
-                    : <p className="text-xs text-zinc-600">Sem limite cadastrado.</p>}
+                    : <p className="text-xs text-ink-3">Sem limite cadastrado.</p>}
                 </li>
               ))}
             </ul>
@@ -251,15 +251,15 @@ function LinhaMetodo({ cor, nome, valor, total }: { cor: string; nome: string; v
   return (
     <li className="flex items-center gap-2">
       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
-      <span className="flex-1 text-zinc-300">{nome}</span>
-      <span className="tabular-nums text-zinc-400">{formatarMoeda(valor)}</span>
+      <span className="flex-1 text-ink-2">{nome}</span>
+      <span className="tabular-nums text-ink-2">{formatarMoeda(valor)}</span>
       <span className="w-9 text-right font-semibold tabular-nums">{Math.round((valor / total) * 100)}%</span>
     </li>
   )
 }
 
 function Vazio({ carregando, texto }: { carregando: boolean; texto: string }) {
-  return <p className="py-4 text-center text-sm text-zinc-600">{carregando ? '—' : texto}</p>
+  return <p className="py-4 text-center text-sm text-ink-3">{carregando ? '—' : texto}</p>
 }
 
 function FormExport({ visao, competencia, onPronto }: { visao: Visao; competencia: string; onPronto: () => void }) {
@@ -286,7 +286,7 @@ function FormExport({ visao, competencia, onPronto }: { visao: Visao; competenci
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">Uma linha por parcela, com data, categoria, valor e status. Abre no Excel e no Google Sheets.</p>
+      <p className="text-sm text-ink-2">Uma linha por parcela, com data, categoria, valor e status. Abre no Excel e no Google Sheets.</p>
       <Alternador
         rotulo="Período"
         opcoes={[{ valor: 'mes' as const, rotulo: 'Este mês' }, { valor: 'ano' as const, rotulo: `Ano de ${ano}` }]}

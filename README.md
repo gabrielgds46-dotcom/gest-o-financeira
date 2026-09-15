@@ -97,7 +97,7 @@ supabase/
 
 - [x] Etapa 1 — Lista do mês, folha de detalhe, edição, cancelamento, exclusão e faixa de desfazer
 - [x] Etapa 2 — Categorias criadas por vocês
-- [ ] Etapa 3 — Layout novo e correções da auditoria de UX
+- [x] Etapa 3 — Layout novo e correções da auditoria de UX
 - [ ] Etapa 4 — Ajuda, tour e telas vazias
 - [ ] Etapa 5 — Lançar por frase e resumo de segunda
 
@@ -116,6 +116,14 @@ supabase/
 - **Parcela cancelada congela o valor total.** O trigger `fn_valida_soma_parcelas`
   compara `valor_total` com a soma de *todas* as parcelas, canceladas inclusive;
   redistribuir deixaria a cancelada sobrando. Descrição e categoria seguem livres.
+- **Três níveis de tinta, e só três** (`ink`, `ink-2`, `ink-3` em `index.css`).
+  Medidos contra o cartão `s1`: 16,18:1 / 9,21:1 / 5,74:1. O `ink-3` substituiu
+  um cinza que ficava em 3,67:1 e reprovava no AA.
+- **Verde é ação e dinheiro positivo, e nada mais.** As duas pessoas da casa são
+  azul (`p1`) e âmbar (`p2`), que sobrevivem a daltonismo — verde/vermelho não.
+- **O número do topo mostra a decomposição, não um número solto.** Os quatro
+  pedaços (pago, guardado, a vencer, livre) somam a renda do mês; se não
+  somassem, a barra seria enfeite. Ver `components/Hero.tsx`.
 - **Categoria com `household_id` null é embutida** (do seed, igual para todo mundo,
   ninguém edita); com valor, é da casa. O slug é único POR CASA, não no mundo.
   Remover é reversível: some se ninguém usou, arquiva se já tem lançamento.

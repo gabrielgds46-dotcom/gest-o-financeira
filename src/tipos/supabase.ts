@@ -752,7 +752,8 @@ export type Database = {
         }[]
       }
       a_vencer: {
-        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_dias?: number }
+        /** p_dias null = até o último dia do mês corrente. */
+        Args: { p_escopo: Database["public"]["Enums"]["escopo_t"]; p_dias?: number | null }
         Returns: {
           parcela_id: string
           lancamento_id: string
@@ -946,6 +947,8 @@ export type Database = {
           sobra: number
           taxa_poupanca: number
           comprometimento: number
+          /** Do gasto do mês, quanto ainda não foi pago. */
+          a_vencer_mes: number
         }[]
       }
       saldo_casal: {

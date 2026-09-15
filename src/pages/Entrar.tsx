@@ -44,7 +44,7 @@ export function Entrar() {
       <div className="mb-10 text-center">
         <img src="/favicon.svg" alt="" className="mx-auto mb-4 h-16 w-16" />
         <h1 className="text-2xl font-bold">Finanças do Casal</h1>
-        <p className="mt-1 text-zinc-400">Entre para continuar</p>
+        <p className="mt-1 text-ink-2">Entre para continuar</p>
       </div>
 
       <div className="space-y-4" onKeyDown={aoTeclar}>
@@ -69,7 +69,7 @@ export function Entrar() {
         />
 
         {erro && (
-          <p role="alert" className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <p role="alert" className="rounded-xl bg-perigo/10 px-4 py-3 text-sm text-perigo">
             {erro}
           </p>
         )}
@@ -79,9 +79,9 @@ export function Entrar() {
         </Botao>
       </div>
 
-      <p className="mt-8 text-center text-sm text-zinc-400">
+      <p className="mt-8 text-center text-sm text-ink-2">
         Ainda não tem conta?{' '}
-        <Link to="/cadastro" className="font-semibold text-emerald-400">
+        <Link to="/cadastro" className="font-semibold text-acao">
           Criar conta
         </Link>
       </p>

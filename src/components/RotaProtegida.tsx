@@ -17,7 +17,7 @@ export function RotaProtegida() {
 export function RotaComCasa() {
   const { perfil, carregando, erro } = usePerfil()
   if (carregando) return <Carregando />
-  if (erro) return <p role="alert" className="p-6 text-red-300">Erro ao carregar seu perfil: {erro}</p>
+  if (erro) return <p role="alert" className="p-6 text-perigo">Erro ao carregar seu perfil: {erro}</p>
   if (!perfil?.household_id) return <Navigate to="/comecar" replace />
   return (
     <>

@@ -37,14 +37,14 @@ export function Avisos() {
   return (
     <div className="safe-top fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-2">
       {offline ? (
-        <p role="status" className="flex items-center gap-2 rounded-full bg-zinc-800 px-4 py-2 text-sm text-zinc-200 shadow-lg">
+        <p role="status" className="flex items-center gap-2 rounded-full bg-s2 px-4 py-2 text-sm text-ink shadow-lg">
           <Icone nome="alerta" tamanho={16} /> Sem conexão. Os dados podem estar desatualizados.
         </p>
       ) : (
         <button
           type="button"
           onClick={() => void atualizar?.()}
-          className="flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-zinc-950 shadow-lg active:scale-95"
+          className="flex items-center gap-2 rounded-full bg-acao px-4 py-2 text-sm font-semibold text-bg shadow-lg active:scale-95"
         >
           <Icone nome="repetir" tamanho={16} /> Nova versão disponível. Toque para atualizar.
         </button>

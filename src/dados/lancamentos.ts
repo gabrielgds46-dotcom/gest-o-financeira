@@ -120,7 +120,7 @@ export async function garantirSalario(competencia: DataLocal): Promise<void> {
 export async function resumoMes(escopo: Escopo, competencia: DataLocal): Promise<ResumoMes> {
   const { data, error } = await supabase.rpc('resumo_mes', { p_escopo: escopo, p_competencia: competencia })
   if (error) throw error
-  return data[0] ?? { renda: 0, gasto: 0, reserva: 0, resgate: 0, credito: 0, sobra: 0, taxa_poupanca: 0, comprometimento: 0 }
+  return data[0] ?? { renda: 0, gasto: 0, reserva: 0, resgate: 0, credito: 0, sobra: 0, taxa_poupanca: 0, comprometimento: 0, a_vencer_mes: 0 }
 }
 
 export async function gastoPorCategoria(escopo: Escopo, competencia: DataLocal): Promise<GastoCategoria[]> {
@@ -129,7 +129,8 @@ export async function gastoPorCategoria(escopo: Escopo, competencia: DataLocal):
   return data ?? []
 }
 
-export async function aVencer(escopo: Escopo, dias = 7): Promise<ParcelaAVencer[]> {
+/** `dias = null` traz tudo o que ainda vence dentro do mês corrente. */
+export async function aVencer(escopo: Escopo, dias: number | null = 7): Promise<ParcelaAVencer[]> {
   const { data, error } = await supabase.rpc('a_vencer', { p_escopo: escopo, p_dias: dias })
   if (error) throw error
   return data ?? []

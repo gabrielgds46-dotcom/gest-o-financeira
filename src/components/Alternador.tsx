@@ -11,7 +11,7 @@ type Props<T extends string> = {
 /** Toggle segmentado, alvo de toque grande. */
 export function Alternador<T extends string>({ opcoes, valor, onChange, rotulo, desabilitados = [] }: Props<T>) {
   return (
-    <div role="radiogroup" aria-label={rotulo} className="flex rounded-xl bg-zinc-900 p-1">
+    <div role="radiogroup" aria-label={rotulo} className="flex rounded-xl bg-s1 p-1">
       {opcoes.map((o) => {
         const ativo = o.valor === valor
         const off = desabilitados.includes(o.valor)
@@ -25,7 +25,7 @@ export function Alternador<T extends string>({ opcoes, valor, onChange, rotulo, 
             onClick={() => onChange(o.valor)}
             className={
               'h-11 flex-1 rounded-lg text-sm font-semibold transition ' +
-              (ativo ? 'bg-zinc-700 text-zinc-50 shadow' : off ? 'text-zinc-600' : 'text-zinc-400 active:bg-zinc-800')
+              (ativo ? 'bg-s3 text-ink shadow' : off ? 'text-ink-3' : 'text-ink-2 active:bg-s2')
             }
           >
             {o.rotulo}

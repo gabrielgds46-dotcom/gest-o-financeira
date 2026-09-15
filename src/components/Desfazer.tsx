@@ -57,20 +57,20 @@ export function Desfazer({ pedido, onFim }: { pedido: PedidoDesfazer | null; onF
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-auto flex w-full max-w-md items-center gap-3 overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-800 pl-4 shadow-2xl"
+        className="pointer-events-auto flex w-full max-w-md items-center gap-3 overflow-hidden rounded-2xl border border-s3 bg-s2 pl-4 shadow-2xl"
       >
-        <p className="min-w-0 flex-1 py-3 text-sm text-zinc-100">
-          {erro ? <span className="text-red-300">Não deu para desfazer: {erro}</span> : pedido.texto}
+        <p className="min-w-0 flex-1 py-3 text-sm text-ink">
+          {erro ? <span className="text-perigo">Não deu para desfazer: {erro}</span> : pedido.texto}
         </p>
         <button
           type="button"
           onClick={() => void desfazer()}
           disabled={ocupado}
-          className="flex h-12 shrink-0 items-center gap-1.5 border-l border-zinc-700 px-4 text-sm font-bold text-emerald-400 active:bg-zinc-700 disabled:opacity-50"
+          className="flex h-12 shrink-0 items-center gap-1.5 border-l border-s3 px-4 text-sm font-bold text-acao active:bg-s3 disabled:opacity-50"
         >
           <Icone nome="desfazer" tamanho={16} />
           Desfazer
-          <span className="tabular-nums text-xs font-normal text-zinc-400">{restante}s</span>
+          <span className="tabular-nums text-xs font-normal text-ink-2">{restante}s</span>
         </button>
       </div>
     </div>

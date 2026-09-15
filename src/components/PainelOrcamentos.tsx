@@ -44,14 +44,14 @@ export function PainelOrcamentos({ ownerId, householdId, temParceiro }: { ownerI
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-zinc-400">Teto mensal por categoria. Vale a partir deste mês; meses anteriores mantêm o teto que tinham.</p>
+      <p className="text-sm text-ink-2">Teto mensal por categoria. Vale a partir deste mês; meses anteriores mantêm o teto que tinham.</p>
       <Alternador<Escopo>
         rotulo="Escopo"
         opcoes={[{ valor: 'pessoal', rotulo: 'Pessoal' }, { valor: 'compartilhado', rotulo: 'Compartilhado' }]}
         valor={escopo} onChange={setEscopo} desabilitados={temParceiro ? [] : ['compartilhado']}
       />
       {erro && <Aviso>{erro}</Aviso>}
-      <ul className="divide-y divide-zinc-800">
+      <ul className="divide-y divide-s2">
         {categorias.filter((c) => c.grupo === 'despesa').map((c) => {
           const teto = tetoDe(c.id)
           const emEdicao = editando === c.id
@@ -64,8 +64,8 @@ export function PainelOrcamentos({ ownerId, householdId, temParceiro }: { ownerI
                 <span className="flex-1 text-sm font-medium">{c.nome}</span>
                 {!emEdicao && (
                   <button type="button" onClick={() => { setEditando(c.id); setValor(teto?.valor_mensal ?? null) }}
-                    className="h-11 rounded-lg px-3 text-sm tabular-nums text-zinc-300 active:bg-zinc-800">
-                    {teto ? formatarMoeda(teto.valor_mensal) : <span className="text-zinc-600">definir</span>}
+                    className="h-11 rounded-lg px-3 text-sm tabular-nums text-ink-2 active:bg-s2">
+                    {teto ? formatarMoeda(teto.valor_mensal) : <span className="text-ink-3">definir</span>}
                   </button>
                 )}
               </div>

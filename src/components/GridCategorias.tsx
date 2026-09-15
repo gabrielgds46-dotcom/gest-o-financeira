@@ -27,7 +27,7 @@ export function GridCategorias({ categorias, valor, onChange, sugerida, onNova }
             style={ativo ? { backgroundColor: c.cor + '26', borderColor: c.cor, color: c.cor } : undefined}
             className={
               'flex h-[72px] flex-col items-center justify-center gap-1 rounded-xl border text-[11px] font-medium transition active:scale-95 ' +
-              (ativo ? '' : eh ? 'border-emerald-500/60 bg-zinc-900 text-zinc-200' : 'border-zinc-800 bg-zinc-900 text-zinc-400')
+              (ativo ? '' : eh ? 'border-acao/60 bg-s1 text-ink' : 'border-s2 bg-s1 text-ink-2')
             }
           >
             <Icone nome={c.icone as NomeIcone} />
@@ -40,7 +40,7 @@ export function GridCategorias({ categorias, valor, onChange, sugerida, onNova }
       {onNova && (
         <button
           type="button" onClick={onNova}
-          className="flex h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-zinc-700 text-[11px] font-medium text-zinc-400 transition active:scale-95"
+          className="flex h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-s3 text-[11px] font-medium text-ink-2 transition active:scale-95"
         >
           <Icone nome="mais" />
           <span className="truncate px-1">Nova</span>

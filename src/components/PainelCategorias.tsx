@@ -56,15 +56,15 @@ export function PainelCategorias({ onDesfazer }: { onDesfazer: (p: PedidoDesfaze
       {erro && <Aviso>{erro}</Aviso>}
 
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-zinc-300">Nossas categorias</h3>
+        <h3 className="mb-2 text-sm font-semibold text-ink-2">Nossas categorias</h3>
         {carregando ? (
-          <p className="text-sm text-zinc-500">Carregando…</p>
+          <p className="text-sm text-ink-3">Carregando…</p>
         ) : nossas.length === 0 ? (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-ink-3">
             Nenhuma ainda. Crie uma para o que vocês gastam e as oito de fábrica não cobrem.
           </p>
         ) : (
-          <ul className="divide-y divide-zinc-800 rounded-xl border border-zinc-800">
+          <ul className="divide-y divide-s2 rounded-xl border border-s2">
             {nossas.map((c) => (
               <li key={c.id} className="flex items-center gap-3 px-3 py-2">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
@@ -72,24 +72,24 @@ export function PainelCategorias({ onDesfazer }: { onDesfazer: (p: PedidoDesfaze
                   <Icone nome={c.icone as NomeIcone} tamanho={20} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={'block truncate text-sm font-medium ' + (c.ativo ? '' : 'text-zinc-500 line-through')}>
+                  <span className={'block truncate text-sm font-medium ' + (c.ativo ? '' : 'text-ink-3 line-through')}>
                     {c.nome}
                   </span>
-                  <span className="block text-xs text-zinc-500">
+                  <span className="block text-xs text-ink-3">
                     {c.grupo === 'reserva' ? 'Reserva' : 'Gasto'}{!c.ativo && ' · arquivada'}
                   </span>
                 </span>
                 <button
                   type="button" disabled={ocupado} onClick={() => setFolha({ categoria: c })}
                   aria-label={`Editar ${c.nome}`}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-400 active:bg-zinc-800 disabled:opacity-40"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 active:bg-s2 disabled:opacity-40"
                 >
                   <Icone nome="editar" tamanho={17} />
                 </button>
                 <button
                   type="button" disabled={ocupado} onClick={() => void remover(c)}
                   aria-label={`Remover ${c.nome}`}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-400 active:bg-zinc-800 disabled:opacity-40"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-ink-2 active:bg-s2 disabled:opacity-40"
                 >
                   <Icone nome="lixeira" tamanho={17} />
                 </button>
@@ -103,12 +103,12 @@ export function PainelCategorias({ onDesfazer }: { onDesfazer: (p: PedidoDesfaze
       </section>
 
       <section>
-        <h3 className="mb-2 text-sm font-semibold text-zinc-300">De fábrica</h3>
-        <p className="mb-2 text-xs text-zinc-500">Vêm com o app e são iguais para todo mundo — não dá para mexer.</p>
+        <h3 className="mb-2 text-sm font-semibold text-ink-2">De fábrica</h3>
+        <p className="mb-2 text-xs text-ink-3">Vêm com o app e são iguais para todo mundo — não dá para mexer.</p>
         <ul className="grid grid-cols-4 gap-2">
           {embutidas.map((c) => (
             <li key={c.id}
-              className="flex h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-zinc-800 bg-zinc-900 px-1 text-center text-[11px] text-zinc-400">
+              className="flex h-[72px] flex-col items-center justify-center gap-1 rounded-xl border border-s2 bg-s1 px-1 text-center text-[11px] text-ink-2">
               <Icone nome={c.icone as NomeIcone} tamanho={18} />
               <span className="w-full truncate">{c.nome}</span>
             </li>
