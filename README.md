@@ -266,15 +266,33 @@ O guia de dataviz foi aplicado na tela Análise, e duas escolhas merecem registr
 
 ## Decisões registradas no linter do Supabase
 
-O linter de segurança ainda aponta dois itens que são **intencionais**:
+O linter aponta três itens. Os dois primeiros são **intencionais**, e cada um foi
+verificado no banco em vez de aceito de palavra.
 
-- `v_cartoes_household` e `v_renda_household` como SECURITY DEFINER: é o que
-  esconde o limite do cartão e o detalhe da renda do parceiro. RLS filtra linha,
-  não coluna, então a exposição parcial precisa ser uma view do dono.
-- RPCs SECURITY DEFINER executáveis por `authenticated` (`criar_household`,
-  `entrar_household`, `gerar_codigo_convite`, `fn_sou_membro`, `fn_meu_household`):
-  todas dependem de `auth.uid()` e existem justamente para o fluxo de onboarding
-  e para evitar recursão de RLS. `anon` não executa nenhuma função.
+**`v_cartoes_household` e `v_renda_household` como SECURITY DEFINER** (nível ERROR).
+Elas burlam o RLS de propósito: `cartoes` só deixa cada um ver o próprio
+(`owner_id = auth.uid()`), mas o escopo compartilhado precisa mostrar o cartão do
+par — e `v_renda_household` precisa somar o salário dos dois. RLS filtra linha, não
+coluna, então a exposição parcial tem de ser uma view do dono. O que segura o
+isolamento é o `where ... = fn_meu_household()` de cada view. Medido:
+
+| | vê pela view | vê na tabela |
+|---|---|---|
+| Gabriel (dono) | 1 cartão | 1 |
+| Heloisa (mesma casa) | 1 cartão — é o ponto | **0** |
+| Estranho, sem casa | **0** | 0 |
+
+**RPCs SECURITY DEFINER executáveis por `authenticated`** (nível WARN).
+`criar_household`, `entrar_household` e `gerar_codigo_convite` existem para o
+onboarding e precisam escrever linhas que o chamador ainda não enxerga.
+`gerar_recorrencia` é o fallback do app no primeiro acesso do mês.
+`fn_sou_membro` e `fn_meu_household` são chamadas de dentro das políticas de RLS,
+e o `EXECUTE` delas é **estrutural**: revogar de `authenticated` derruba o RLS
+inteiro com `permission denied for function fn_sou_membro` — testado e revertido.
+`anon` não executa nenhuma função.
+
+**Proteção contra senha vazada** (nível WARN): só existe do plano Pro para cima.
+Fica aberto até a conta mudar de plano.
 
 ## Rodando os testes
 
